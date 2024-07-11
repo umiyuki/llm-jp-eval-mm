@@ -11,6 +11,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
+datasets = "^2.20.0"
+torch = "^2.3.1"
+numpy = "^2.0.0"
+ipykernel = "^6.29.5"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -38,7 +42,7 @@ src_paths = ["src"]
 # E203 is not PEP8 compliant and black insert space around slice (https://black.readthedocs.io/en/stable/faq.html#why-are-flake8-s-e203-and-w503-violated)
 # E501: Line too long. Disable it to allow long lines of comments and print lines which black allows.
 # W503: line break before binary operator (https://www.flake8rules.com/rules/W503.html)
-ignore = ["E203", "E501", "W503"]
+ignore = ["E203", "F401", "E501", "W503"]
 max-line-length = 120
 
 [tool.mypy]

@@ -4,8 +4,8 @@ import warnings
 # このあたりの必要なものは適宜実装していく
 # from lmms_eval import utils
 # from lmms_eval.api.instance import Instance
-from lmms_eval.api.model import lmms
-from lmms_eval.api.registry import register_model
+from src.llm_jp_eval_mm.api.model import lmms
+from src.llm_jp_eval_mm.api.registry import register_model
 
 # from typing import List, Optional, Tuple, Union
 
@@ -15,7 +15,7 @@ from lmms_eval.api.registry import register_model
 # from accelerate.state import AcceleratorState
 
 # from tqdm import tqdm
-# from transformers import InstructBlipForConditionalGeneration, InstructBlipProcessor
+# from transformers import InstructBlipForConditionalGeneration
 
 # from lmms_eval.tasks.mmmu.utils_group_img import process_images
 

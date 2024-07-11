@@ -1,0 +1,1 @@
+from .japanese_instructblip_alpha import JapaneseInstructBLIPAlpha
