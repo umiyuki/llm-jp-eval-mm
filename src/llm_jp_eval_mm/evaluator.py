@@ -29,7 +29,7 @@ def evaluate(
     # instantiate the model
     model = model_cls(**model_args)
 
-    # sample generation
+    # TODO: This is a sample generation, please replace it with the task loading and generation code.
     import requests
     from PIL import Image
 
