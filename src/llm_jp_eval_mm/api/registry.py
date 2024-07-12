@@ -8,6 +8,10 @@ def register_model(*names):
     # function receives them as a tuple of strings
 
     def decorate(cls):
+        print(f"Registering class: {cls.__name__} with names: {names}")
+        print(f"cls class: {cls}")
+        print(f"lmms class: {lmms}")
+
         for name in names:
             assert issubclass(cls, lmms), f"Model '{name}' ({cls.__name__}) must extend lmms class"
 

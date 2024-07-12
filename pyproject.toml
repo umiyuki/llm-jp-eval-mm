@@ -13,8 +13,11 @@ packages = [
 python = "^3.10"
 datasets = "^2.20.0"
 torch = "^2.3.1"
-numpy = "^2.0.0"
 ipykernel = "^6.29.5"
+transformers = "^4.42.4"
+pillow = "^10.4.0"
+requests = "^2.32.3"
+python-dotenv = "^1.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -23,6 +26,7 @@ isort = "^5.13.2"
 mypy = "^1.10.1"
 black = "^24.4.2"
 pyproject-flake8 = "^7.0.0"
+types-requests = "^2.32.0.20240622"
 
 [build-system]
 requires = ["poetry-core"]

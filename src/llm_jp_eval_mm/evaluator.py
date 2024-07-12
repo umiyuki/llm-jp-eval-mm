@@ -4,8 +4,9 @@ from typing import Dict
 import numpy as np
 import torch
 
-import src.llm_jp_eval_mm.models
-from src.llm_jp_eval_mm.api.registry import get_model
+import llm_jp_eval_mm.api
+import llm_jp_eval_mm.models
+from llm_jp_eval_mm.api.registry import get_model
 
 
 def evaluate(
@@ -28,25 +29,22 @@ def evaluate(
     # instantiate the model
     model = model_cls(**model_args)
 
-    # Print the config of the model
-    print("Successfully loaded the model!")
-    print(model.config)
+    # sample generation
+    import requests
+    from PIL import Image
 
-    # load datasets
-    # from datasets import get_dataset
+    url = "https://images.unsplash.com/photo-1694831404826-3400c48c188d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    image = Image.open(requests.get(url, stream=True).raw).convert("RGB")
+    # <image> represents the input image. Please make sure to put the token in your text.
+    text = "<image>\nこの信号機の色は何色ですか?"
 
-    # dataset_config = config.dataset
-    # dataset_name = dataset_config.dataset_name
+    generated_text = model.generate(image, text)
+    print(generated_text)
 
-    # # TODO: Implement after loading the dataset
-    # _ = get_dataset(dataset_config)
-
-    # # Celebrate the successful loading of the model!
-    # print(f"Successfully loaded the dataset -> {dataset_name}")
-    # print(dataset_config)
+    return
 
 
 evaluate(
-    model_name="code-llama",
-    model_args={"model_id": "codellama/CodeLlama-7b-hf"},
+    model_name="evovlm-jp-v1",
+    model_args={},
 )
