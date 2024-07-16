@@ -6,7 +6,8 @@ import torch
 
 import llm_jp_eval_mm.api
 import llm_jp_eval_mm.models
-from llm_jp_eval_mm.api.registry import get_model
+import llm_jp_eval_mm.tasks
+from llm_jp_eval_mm.api.registry import get_model, get_task
 
 
 def evaluate(
@@ -29,22 +30,21 @@ def evaluate(
     # instantiate the model
     model = model_cls(**model_args)
 
-    # TODO: This is a sample generation, please replace it with the task loading and generation code.
-    import requests
-    from PIL import Image
-
-    url = "https://images.unsplash.com/photo-1694831404826-3400c48c188d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-    image = Image.open(requests.get(url, stream=True).raw).convert("RGB")
-    # <image> represents the input image. Please make sure to put the token in your text.
-    text = "<image>\nこの信号機の色は何色ですか?"
-
-    generated_text = model.generate(image, text)
-    print(generated_text)
-
+    # load task
+    # TODO: 推論させるところまではOK. あとは，結果を保存＋評価部分．
+    for task_name in tasks:
+        task_cls = get_task(task_name)
+        task = task_cls()
+        dataset = task.dataset
+        for doc in dataset:
+            image, text = task.doc_to_visual(doc), task.doc_to_text(doc)
+            pred = model.generate(image, text)
+            print("pred:", pred)
     return
 
 
 evaluate(
     model_name="evovlm-jp-v1",
     model_args={},
+    tasks=["japanese-heron-bench"],
 )

@@ -52,10 +52,8 @@ def register_task(name):
     return decorate
 
 
-def get_task(task_name, model_name):
+def get_task(task_name):
     try:
-        return TASK_REGISTRY[task_name](
-            model_name=model_name
-        )  # TODO choiszt the return result need to check " 'mmeConfigurableTask' object has no attribute '_instances'. Did you mean: 'instances'?"
+        return TASK_REGISTRY[task_name]
     except KeyError:
         raise KeyError(f"Missing task {task_name}")

@@ -53,6 +53,7 @@ class EvoVLMJPv1(lmms):
         return self._device
 
     def generate(self, image: Image.Image, text: str):
+        text = f"<image>{text}"
         messages = [
             {
                 "role": "system",
