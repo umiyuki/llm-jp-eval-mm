@@ -1,9 +1,11 @@
+import json
 import random
 from typing import Dict
 
 import dotenv
 import numpy as np
 import torch
+from tqdm import tqdm
 
 import llm_jp_eval_mm.api
 import llm_jp_eval_mm.models
@@ -39,19 +41,24 @@ def evaluate(
         # prepare task
         task_cls = get_task(task_name)
         task = task_cls()
-        dataset = task.dataset.select(range(3))
 
-        results = []
+        dataset = task.dataset.select(range(3))
+        preds = []
+
         # inference
-        for i, doc in enumerate(dataset):
-            print(f"doc: {doc}")
+        for i, doc in tqdm(enumerate(dataset), total=len(dataset), desc=f"Task: {task_name} Predicting ..."):
             image, text = task.doc_to_visual(doc), task.doc_to_text(doc)
             pred = model.generate(image, text)
-            print("pred:", pred)
-            results.append(pred)
+            preds.append(pred)
 
         # evaluation
-        task.process_results(dataset, results)
+        results = task.process_results(dataset, preds)
+
+        # Save result into jsonl file
+        with open(f"/home/silviase/llmjp/llm-jp-eval-multimodal/tmp/{task_name}.jsonl", "w") as f:
+            for result in results:
+                f.write(json.dumps(result, ensure_ascii=False) + "\n")
+            f.close()
 
     return
 
