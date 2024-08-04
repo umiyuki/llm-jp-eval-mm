@@ -1,4 +1,5 @@
 import json
+import os
 import random
 from typing import Dict
 
@@ -11,60 +12,76 @@ import llm_jp_eval_mm.api
 import llm_jp_eval_mm.models
 import llm_jp_eval_mm.tasks
 from llm_jp_eval_mm.api.registry import get_model, get_task
+from llm_jp_eval_mm.configs import config
 
 dotenv.load_dotenv()
 
 
-def evaluate(
-    model_name: str,
-    model_args: Dict[str, str],
-    tasks=[],
-    num_fewshot=None,
-    batch_size: int = 1,
-    device: str = "cuda",
-    **kwargs,
-):
+def evaluate():
 
+    # Random seed settings
     random.seed(0)
     np.random.seed(1234)
     torch.manual_seed(1234)
 
+    # TODO: STOP loading models if not needed
     # get the model class
-    model_cls = get_model(model_name)
-
+    model_cls = get_model(config.model.model_family)
     # instantiate the model
-    model = model_cls(**model_args)
+    model = model_cls(config.model)
 
-    # load task
-    # TODO: 推論させるところまではOK. あとは，結果を保存＋評価部分．
-    for task_name in tasks:
-        # prepare task
-        task_cls = get_task(task_name)
-        task = task_cls()
+    # prepare task
+    task_name = config.task.task_id
+    task_cls = get_task(task_name)
+    task = task_cls()
+    dataset = task.dataset
+    save_dir = os.path.join(config.path.result_dir, task_name, config.model.model_id)
+    print(f"Saving results to {save_dir}")
+    os.makedirs(save_dir, exist_ok=True)
 
-        dataset = task.dataset.select(range(3))
+    if config.task.do_inference:
+        print(f"Task: {task_name} Inference ...")
         preds = []
-
         # inference
         for i, doc in tqdm(enumerate(dataset), total=len(dataset), desc=f"Task: {task_name} Predicting ..."):
             image, text = task.doc_to_visual(doc), task.doc_to_text(doc)
             pred = model.generate(image, text)
-            preds.append(pred)
+            processed_pred = task.process_pred(pred, doc)
+            preds.append(processed_pred)
 
-        # evaluation
-        results = task.process_results(dataset, preds)
-
-        # Save result into jsonl file
-        with open(f"/home/silviase/llmjp/llm-jp-eval-multimodal/tmp/{task_name}.jsonl", "w") as f:
-            for result in results:
-                f.write(json.dumps(result, ensure_ascii=False) + "\n")
+        print(f"Saving inference results to {save_dir}")
+        # save inference result into jsonl file
+        with open(os.path.join(save_dir, config.task.inference_result_path), "w") as f:
+            for pred in preds:
+                f.write(json.dumps(pred, ensure_ascii=False) + "\n")
             f.close()
 
+    print(f"Loading inference results from {save_dir}")
+    # load inference result from jsonl file
+    with open(os.path.join(save_dir, config.task.inference_result_path), "r") as f:
+        preds = [json.loads(line) for line in f.readlines()]
+        f.close()
+
+    if config.task.do_eval:
+        print(f"Task: {task_name} Evaluation ...")
+        # evaluation
+        results, verbose_reuslts = task.process_results(dataset, preds)
+
+        # Save result into json file
+        with open(os.path.join(save_dir, config.task.eval_result_path), "w") as f:
+            json.dump(results, f, ensure_ascii=False)
+            f.close()
+
+        # Save verbose result into jsonl file
+        if config.task.do_verbose_eval:
+            with open(os.path.join(save_dir, config.task.verbose_eval_result_path), "w") as f:
+                for verbose_result in verbose_reuslts:
+                    f.write(json.dumps(verbose_result, ensure_ascii=False) + "\n")
+                f.close()
+
+    print("Finished task: ", task_name)
     return
 
 
-evaluate(
-    model_name="evovlm-jp-v1",
-    model_args={},
-    tasks=["japanese-heron-bench"],
-)
+if __name__ == "__main__":
+    evaluate()

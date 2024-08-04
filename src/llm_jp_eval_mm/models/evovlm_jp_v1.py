@@ -23,13 +23,14 @@ class EvoVLMJPv1(lmms):
     EvoVLM-JP-v1 Model
     """
 
-    def __init__(self) -> None:
+    def __init__(self, cfg) -> None:
         super().__init__()
-        self._model_id = "SakanaAI/EvoVLM-JP-v1-7B"
+        self._model_id = cfg.model_id
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
         self._model = AutoModelForVision2Seq.from_pretrained(self._model_id, torch_dtype=torch.float16)
         self._processor = AutoProcessor.from_pretrained(self._model_id)
         self._model.to(self.device)
+        self._config = cfg
 
     @property
     def config(self):

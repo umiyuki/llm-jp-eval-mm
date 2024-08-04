@@ -120,3 +120,6 @@ submodule/
 # temporary
 notebooks/tmp
 tmp/
+
+# verbose output
+*verbose.jsonl
