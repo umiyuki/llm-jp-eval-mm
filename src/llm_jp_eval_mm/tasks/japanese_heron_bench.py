@@ -1,6 +1,4 @@
-import asyncio
 import os
-from typing import Any, Dict
 
 from datasets import load_dataset
 from dotenv import load_dotenv
@@ -9,6 +7,7 @@ from tqdm import tqdm
 
 from llm_jp_eval_mm.api.registry import register_task
 from llm_jp_eval_mm.api.tasks import Task
+from llm_jp_eval_mm.configs import config
 
 from .utlis import RULES, ask_gpt4
 
@@ -47,31 +46,42 @@ class JapaneseHeronBench(Task):
         return self._dataset["train"]
 
     def doc_to_text(self, doc):
-        # context = doc["context"]
         text = doc["text"]
         return f"{text}"
 
     def doc_to_visual(self, doc):
         return doc["image"]
 
+    def process_pred(self, pred, doc):
+        processed = {
+            "question_id": doc["question_id"],
+            "image_category": doc["image_category"],
+            "prompt": doc["text"],
+            "answer_id": "",
+            "model_id": config.model.model_id,
+            "text": pred,
+        }
+        return processed
+
     def process_results(self, docs, preds):
         """Process the results of the model.
         Args:
             doc: dataset instance
-            results: [pred]
+            preds: [pred]
         Return:
             a dictionary with key: { 'score' : score }
         """
 
-        # assert len(docs) == len(results), "Number of docs and results should be the same"
+        # TODO: Please load your OWN .env file
         load_dotenv("/home/silviase/llmjp/llm-jp-eval-multimodal/.env")
+
         client = AzureOpenAI(
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             api_version="2023-05-15",
             api_key=os.getenv("AZURE_OPENAI_KEY"),
         )
 
-        results = []
+        results_verbose = []
 
         for idx, (doc, pred) in enumerate(tqdm(zip(docs, preds), total=len(docs), desc="Evaluation ...")):
             category = doc["category"]
@@ -88,12 +98,12 @@ class JapaneseHeronBench(Task):
                 f"If it is not relevant to the context, does not answer directly, or says the wrong thing, give it a low score.\n\n"
             )
 
-            pred = ask_gpt4(client, content, max_tokens=1024)
-            scores = parse_score(pred)
-            results.append(
+            eval_result = ask_gpt4(client, content, max_tokens=1024)
+            scores = parse_score(eval_result)
+            results_verbose.append(
                 {
                     "id": idx,
-                    "pred": pred,
+                    "category": category,
                     "answer_gpt": answer_1,
                     "answer_eval": answer_2,
                     "score_gpt": scores[0],
@@ -101,4 +111,19 @@ class JapaneseHeronBench(Task):
                 }
             )
 
-        return results
+            # for checking, break after 10
+            if idx == 10:
+                break
+
+        # average score for each category, and overall
+        metrics = {}
+        for category in RULES.keys():
+            scores = [r["score_eval"] for r in results_verbose if r["category"] == category]
+            if len(scores) == 0:
+                continue
+            avg_score = sum(scores) / len(scores)
+            metrics[category] = avg_score
+
+        metrics["overall"] = sum([r["score_eval"] for r in results_verbose]) / len(results_verbose)
+        print(metrics)
+        return metrics, results_verbose
