@@ -7,3 +7,5 @@ task:
 
 path:
   result_dir: src/llm_jp_eval_mm/results
+
+verbose: True # for debugging
