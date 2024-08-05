@@ -1,4 +1,5 @@
 from llm_jp_eval_mm.api.model import lmms
+from llm_jp_eval_mm.utils import log
 
 MODEL_REGISTRY = {}
 
@@ -8,9 +9,9 @@ def register_model(*names):
     # function receives them as a tuple of strings
 
     def decorate(cls):
-        print(f"Registering class: {cls.__name__} with names: {names}")
-        print(f"cls class: {cls}")
-        print(f"lmms class: {lmms}")
+        log(f"Registering class: {cls.__name__} with names: {names}")
+        log(f"cls class: {cls}")
+        log(f"lmms class: {lmms}")
 
         for name in names:
             assert issubclass(cls, lmms), f"Model '{name}' ({cls.__name__}) must extend lmms class"

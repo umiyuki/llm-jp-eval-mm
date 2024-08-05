@@ -8,6 +8,7 @@ from tqdm import tqdm
 from llm_jp_eval_mm.api.registry import register_task
 from llm_jp_eval_mm.api.tasks import Task
 from llm_jp_eval_mm.configs import config
+from llm_jp_eval_mm.utils import log
 
 from .utlis import RULES, ask_gpt4
 
@@ -102,7 +103,7 @@ class JapaneseHeronBench(Task):
             scores = parse_score(eval_result)
             results_verbose.append(
                 {
-                    "id": idx,
+                    "question_id": idx,
                     "category": category,
                     "answer_gpt": answer_1,
                     "answer_eval": answer_2,
@@ -110,10 +111,6 @@ class JapaneseHeronBench(Task):
                     "score_eval": scores[1],
                 }
             )
-
-            # for checking, break after 10
-            if idx == 10:
-                break
 
         # average score for each category, and overall
         metrics = {}
@@ -125,5 +122,7 @@ class JapaneseHeronBench(Task):
             metrics[category] = avg_score
 
         metrics["overall"] = sum([r["score_eval"] for r in results_verbose]) / len(results_verbose)
-        print(metrics)
+
+        log(metrics)
+
         return metrics, results_verbose

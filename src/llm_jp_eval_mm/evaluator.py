@@ -13,6 +13,7 @@ import llm_jp_eval_mm.models
 import llm_jp_eval_mm.tasks
 from llm_jp_eval_mm.api.registry import get_model, get_task
 from llm_jp_eval_mm.configs import config
+from llm_jp_eval_mm.utils import log
 
 dotenv.load_dotenv()
 
@@ -36,11 +37,12 @@ def evaluate():
     task = task_cls()
     dataset = task.dataset
     save_dir = os.path.join(config.path.result_dir, task_name, config.model.model_id)
-    print(f"Saving results to {save_dir}")
     os.makedirs(save_dir, exist_ok=True)
 
+    log(f"Saving results to {save_dir}")
+
     if config.task.do_inference:
-        print(f"Task: {task_name} Inference ...")
+        log(f"Task: {task_name} Inference ...")
         preds = []
         # inference
         for i, doc in tqdm(enumerate(dataset), total=len(dataset), desc=f"Task: {task_name} Predicting ..."):
@@ -49,21 +51,23 @@ def evaluate():
             processed_pred = task.process_pred(pred, doc)
             preds.append(processed_pred)
 
-        print(f"Saving inference results to {save_dir}")
+        log(f"Saving inference results to {save_dir}")
+
         # save inference result into jsonl file
         with open(os.path.join(save_dir, config.task.inference_result_path), "w") as f:
             for pred in preds:
                 f.write(json.dumps(pred, ensure_ascii=False) + "\n")
             f.close()
 
-    print(f"Loading inference results from {save_dir}")
+    log(f"Loading inference results from {save_dir}")
+
     # load inference result from jsonl file
     with open(os.path.join(save_dir, config.task.inference_result_path), "r") as f:
         preds = [json.loads(line) for line in f.readlines()]
         f.close()
 
     if config.task.do_eval:
-        print(f"Task: {task_name} Evaluation ...")
+        log(f"Task: {task_name} Evaluation ...")
         # evaluation
         results, verbose_reuslts = task.process_results(dataset, preds)
 
@@ -79,7 +83,8 @@ def evaluate():
                     f.write(json.dumps(verbose_result, ensure_ascii=False) + "\n")
                 f.close()
 
-    print("Finished task: ", task_name)
+    log("Finished task: ", task_name)
+
     return
 
 
