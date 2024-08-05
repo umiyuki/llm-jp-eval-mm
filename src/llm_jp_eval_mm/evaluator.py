@@ -83,7 +83,7 @@ def evaluate():
                     f.write(json.dumps(verbose_result, ensure_ascii=False) + "\n")
                 f.close()
 
-    log("Finished task: ", task_name)
+    log(f"Finished task: {task_name}")
 
     return
 
