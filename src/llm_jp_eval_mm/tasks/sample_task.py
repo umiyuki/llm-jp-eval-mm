@@ -1,10 +1,3 @@
-import os
-
-from datasets import load_dataset
-from dotenv import load_dotenv
-from openai import AzureOpenAI
-from tqdm import tqdm
-
 from llm_jp_eval_mm.api.registry import register_task
 from llm_jp_eval_mm.api.tasks import Task
 
@@ -26,6 +19,12 @@ class SampleTask(Task):
 
     def doc_to_visual(self, doc):
         return doc["image"]
+
+    def process_pred(self, pred, doc):
+        processed = {
+            "text": pred,
+        }
+        return processed
 
     def process_results(self, docs, preds):
         """Process the results of the model.
