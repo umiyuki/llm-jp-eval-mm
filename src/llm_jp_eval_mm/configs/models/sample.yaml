@@ -1,2 +1,3 @@
 model:
+  model_family: sample
   model_id: sasagawa_model
