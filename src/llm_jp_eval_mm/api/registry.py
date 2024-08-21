@@ -55,6 +55,8 @@ def register_task(name):
 
 def get_task(task_name):
     try:
-        return TASK_REGISTRY[task_name]
+        task_cls = TASK_REGISTRY[task_name]
+        task = task_cls()
+        return task
     except KeyError:
         raise KeyError(f"Missing task {task_name}")

@@ -41,6 +41,7 @@ def evaluate():
 
     log(f"Saving results to {save_dir}")
 
+    # 現在はここでinferenceを行っている．この部分は評価者が描いてもらう．
     if config.task.do_inference:
         log(f"Task: {task_name} Inference ...")
         preds = []
