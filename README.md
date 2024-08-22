@@ -34,22 +34,18 @@
 
 ## 評価方法
 
-### 評価の実行
+### サンプルコードの実行
 
-<!-- 設定は config ファイルで管理し，[hydra](https://github.com/facebookresearch/hydra)を使用して読み込む． -->
-
-設定は config ファイルで管理し，現在は[hydra]ではなく``CONFIG=``と直に指定する形をとっている．
-hydraを可及的速やかに導入する予定である．
-
+現在のサンプルコードは`sample.py`であり，`EvoVLMv1`を使って`japanese-heron-bench`が評価される．
 
 ```bash
-CONFIG=models/evovlm-jp-v1,tasks/japanese-heron-bench poetry run python src/llm_jp_eval_mm/evaluator.py
+poetry run python sample.py
 ```
 
 ### 評価結果の確認
 
-評価結果のスコアと出力結果は `src/llm_jp_eval_mm/{task_id}/{model_id}/eval.json` に保存される．
-詳細な結果は`src/llm_jp_eval_mm/{task_id}/{model_id}/eval_verbose.jsonl`に保存される．
+評価結果のスコアと出力結果は `{任意の保存先を指定せよ}` に保存される．
+詳細な結果は`eval_results`でreturnされるのでそれを確認せよ．
 
 ### 評価結果をW&Bで管理
 
