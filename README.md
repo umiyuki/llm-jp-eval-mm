@@ -6,9 +6,8 @@
 
 - 既存の日本語評価データを利用し，テキスト生成タスクの評価データセットに変換
 - 複数データセットを横断して大規模言語モデルの評価を実行
-- 評価データのプロンプトと同形式のインストラクションデータ (jaster) を生成
 
-データフォーマットの詳細，サポートしているデータの一覧，またjasterの詳細については，[DATASET.md](./DATASET.md)を参照ください．
+データフォーマットの詳細，サポートしているデータの一覧については，[DATASET.md](./DATASET.md)を参照ください．
 
 
 ## 目次
@@ -23,7 +22,12 @@
 
 ## インストール
 
-1. [poetry](https://python-poetry.org/docs/)（推奨） または pip を使用
+1. リポジトリをクローンする
+```bash
+git clone git@github.com:llm-jp/llm-jp-eval-mm.git
+```
+
+2. [poetry](https://python-poetry.org/docs/)（推奨） または pip を使用
 
 - poetry の場合
     ```bash
