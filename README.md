@@ -20,7 +20,7 @@
 - [ライセンス](#ライセンス)
 - [Contribution](#Contribution)
 
-## インストール
+## 環境構築
 
 1. リポジトリをクローンする
 ```bash
@@ -34,13 +34,17 @@ git clone git@github.com:llm-jp/llm-jp-eval-mm.git
     cd llm-jp-eval-mm
     poetry install
     ```
+3. [.env.sample](./.env.sample)を参考にしながら`.env`を編集して，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください．
 
+以上で環境構築は終了です．
 
 ## 評価方法
 
 ### サンプルコードの実行
 
-現在のサンプルコードは`sample.py`であり，`EvoVLMv1`を使って`japanese-heron-bench`が評価される．
+現在のサンプルコードは`sample.py`です．
+- 評価モデル：`EvoVLMv1`
+- 評価ベンチマーク：`japanese-heron-bench`
 
 ```bash
 poetry run python sample.py
@@ -48,8 +52,9 @@ poetry run python sample.py
 
 ### 評価結果の確認
 
-評価結果のスコアと出力結果は `{任意の保存先を指定せよ}` に保存される．
-詳細な結果は`eval_results`でreturnされるのでそれを確認せよ．
+- 評価結果のスコアと出力結果はjsonでreturnされます．
+  - 各自で適切な場所を指定してください．
+- 詳細な結果は`eval_results`でreturnされます，
 
 ### 評価結果をW&Bで管理
 
