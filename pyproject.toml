@@ -1,13 +1,10 @@
 [tool.poetry]
-name = "llm-jp-eval-mm"
+name = "eval-mm"
 version = "0.1.0"
 description = ""
 authors = ["Silviase <koki.maeda@nlp.c.titech.ac.jp>", ]
 maintainers = ["Silviase <koki.maeda@nlp.c.titech.ac.jp>", ]
 readme = ["README.md", "README_en.md"]
-packages = [
-    {include = "llm_jp_eval_mm", from = "src"}
-]
 
 [tool.poetry.dependencies]
 python = "^3.10"

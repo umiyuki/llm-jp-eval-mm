@@ -22,21 +22,32 @@
 
 ## 環境構築
 
-1. リポジトリをクローンする
+1. リポジトリをクローンして移動する
 ```bash
 git clone git@github.com:llm-jp/llm-jp-eval-mm.git
+cd llm-jp-eval-mm
 ```
 
 2. [poetry](https://python-poetry.org/docs/)（推奨） または pip を使用
 
 - poetry の場合
     ```bash
+    ```bash
     cd llm-jp-eval-mm
-    poetry install
-    ```
-3. [.env.sample](./.env.sample)を参考にしながら`.env`を編集して，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください．
+  ```bash
+    cd llm-jp-eval-mm
+  poetry install
+  ```
+- venv の場合
+  ```bash
+  python -m venv .venv
+  source .venv/bin/activate
+  pip install .
+  ```
 
-以上で環境構築は終了です．
+3. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください. dotenvライブラリが`.env`ファイルを読み込みます.
+
+以上で環境構築は終了です.
 
 ## 評価方法
 
