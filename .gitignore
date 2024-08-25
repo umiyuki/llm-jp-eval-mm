@@ -123,3 +123,4 @@ tmp/
 
 # verbose output
 *verbose.jsonl
+__depr__/

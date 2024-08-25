@@ -1,8 +1,0 @@
-task:
-  task_id: japanese-heron-bench
-  do_inference: True
-  do_eval: True
-  do_verbose_eval: True
-  inference_result_path: inference.jsonl
-  eval_result_path: eval.json
-  verbose_eval_result_path: eval_verbose.jsonl
