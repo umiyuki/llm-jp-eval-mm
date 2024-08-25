@@ -64,7 +64,6 @@ def parse_score(review):
 
 
 def ask_gpt4(content: str, max_tokens: int):
-
     completion = client.chat.completions.create(
         model="gpt-4-turbo-2024-04-09",
         messages=[
@@ -161,7 +160,9 @@ class JapaneseHeronBench(Task):
         eval_results = []
         docs = self.dataset
 
-        for doc, pred in tqdm(zip(docs, preds), total=len(preds), desc="Evaluation ..."):
+        for doc, pred in tqdm(
+            zip(docs, preds), total=len(preds), desc="Evaluation ..."
+        ):
             eval_result = self.evaluate(doc, pred)
             eval_results.append(eval_result)
 

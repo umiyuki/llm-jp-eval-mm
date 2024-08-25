@@ -6,7 +6,9 @@ func2task_index = {}  # Key: task ConfigurableTask class, Value: task name
 
 def register_task(name):
     def decorate(fn):
-        assert name not in TASK_REGISTRY, f"task named '{name}' conflicts with existing registered task!"
+        assert (
+            name not in TASK_REGISTRY
+        ), f"task named '{name}' conflicts with existing registered task!"
 
         TASK_REGISTRY[name] = fn
         ALL_TASKS.add(name)
