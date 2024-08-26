@@ -1,7 +1,7 @@
 import json
 import os
 
-import eval_mm
+import src as eval_mm
 import torch
 from tqdm import tqdm
 from transformers import AutoModelForVision2Seq, AutoProcessor
@@ -13,7 +13,9 @@ class EvoVLMJPv1:
         self.config = cfg
         self.model_id = cfg["model_id"]
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = AutoModelForVision2Seq.from_pretrained(self.model_id, torch_dtype=torch.float16)
+        self.model = AutoModelForVision2Seq.from_pretrained(
+            self.model_id, torch_dtype=torch.float16
+        )
         self.processor = AutoProcessor.from_pretrained(self.model_id)
         self.model.to(self.device)
 
@@ -27,10 +29,14 @@ class EvoVLMJPv1:
             {"role": "user", "content": text},
         ]
         inputs = self.processor.image_processor(images=image, return_tensors="pt")
-        inputs["input_ids"] = self.processor.tokenizer.apply_chat_template(messages, return_tensors="pt")
+        inputs["input_ids"] = self.processor.tokenizer.apply_chat_template(
+            messages, return_tensors="pt"
+        )
         output_ids = self.model.generate(**inputs.to(self.device))
         output_ids = output_ids[:, inputs.input_ids.shape[1] :]
-        generated_text = self.processor.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+        generated_text = self.processor.batch_decode(
+            output_ids, skip_special_tokens=True
+        )[0].strip()
         return generated_text
 
 

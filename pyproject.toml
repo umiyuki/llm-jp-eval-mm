@@ -1,56 +1,36 @@
-[tool.poetry]
+[project]
 name = "llm-jp-eval-mm"
 version = "0.1.0"
-description = ""
-authors = ["Silviase <koki.maeda@nlp.c.titech.ac.jp>", ]
-maintainers = ["Silviase <koki.maeda@nlp.c.titech.ac.jp>", ]
-readme = ["README.md", "README_en.md"]
-packages = [
-    {include = "llm_jp_eval_mm", from = "src"}
+description = "llm-jp-eval-mm is a tool for evaluating Multi-Modal Large Language Models."
+authors = [
+    { name = "Silviase", email = "koki.maeda@nlp.c.titech.ac.jp" }
 ]
+dependencies = [
+    "datasets>=2.21.0",
+    "torch>=2.4.0",
+    "transformers>=4.42.4, <4.43.0",
+    "requests>=2.32.3",
+    "python-dotenv>=1.0.1",
+    "openai>=1.42.0",
+    "pillow>=10.4.0",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-datasets = "^2.20.0"
-torch = "^2.3.1"
-ipykernel = "^6.29.5"
-transformers = "^4.42.4"
-pillow = "^10.4.0"
-requests = "^2.32.3"
-python-dotenv = "^1.0.1"
-openai = "^1.35.14"
-mypy = "^1.11.0"
-omegaconf = "^2.3.0"
-
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^3.7.1"
-isort = "^5.13.2"
-black = "^24.4.2"
-pyproject-flake8 = "^7.0.0"
-types-requests = "^2.32.0.20240622"
-huggingface-hub = "^0.23.4"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.black]
-line-length = 120
-target-version = ["py39", "py310", "py311"]
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "ruff>=0.6.2",
+    "mypy>=1.11.2",
+]
 
-[tool.isort]
-line_length = 120
-py_version = 310
-profile = "black"
-src_paths = ["src"]
+[tool.hatch.metadata]
+allow-direct-references = true
 
-[tool.flake8]
-# E203 is not PEP8 compliant and black insert space around slice (https://black.readthedocs.io/en/stable/faq.html#why-are-flake8-s-e203-and-w503-violated)
-# E501: Line too long. Disable it to allow long lines of comments and print lines which black allows.
-# W503: line break before binary operator (https://www.flake8rules.com/rules/W503.html)
-ignore = ["E203", "F401", "E501", "W503"]
-max-line-length = 120
-
-[tool.mypy]
-python_version = "3.10"
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

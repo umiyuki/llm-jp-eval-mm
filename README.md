@@ -12,31 +12,36 @@
 
 ## 目次
 
-- [インストール](#インストール)
-- [評価方法](#評価方法)
-  - [データセットのダウンロードと前処理](#データセットのダウンロードと前処理)
-  - [評価の実行](#評価の実行)
-  - [評価結果の確認](#評価結果の確認)
-- [ライセンス](#ライセンス)
-- [Contribution](#Contribution)
+- [LLM-jp-eval-mm](#llm-jp-eval-mm)
+  - [目次](#目次)
+  - [環境構築](#環境構築)
+  - [評価方法](#評価方法)
+    - [サンプルコードの実行](#サンプルコードの実行)
+    - [評価結果の確認](#評価結果の確認)
+    - [評価結果をW\&Bで管理](#評価結果をwbで管理)
+  - [ライセンス](#ライセンス)
+  - [Contribution](#contribution)
 
 ## 環境構築
 
-1. リポジトリをクローンする
+1. リポジトリをクローンして移動する
 ```bash
 git clone git@github.com:llm-jp/llm-jp-eval-mm.git
+cd llm-jp-eval-mm
 ```
 
-2. [poetry](https://python-poetry.org/docs/)（推奨） または pip を使用
+2. rye を用いて環境構築を行う
 
-- poetry の場合
-    ```bash
-    cd llm-jp-eval-mm
-    poetry install
-    ```
-3. [.env.sample](./.env.sample)を参考にしながら`.env`を編集して，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください．
+ryeは[official doc](https://rye.astral.sh/guide/installation/) を参考にインストールしてください．
 
-以上で環境構築は終了です．
+```bash
+cd llm-jp-eval-mm
+rye sync
+```
+
+1. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください.
+
+以上で環境構築は終了です.
 
 ## 評価方法
 
@@ -47,7 +52,7 @@ git clone git@github.com:llm-jp/llm-jp-eval-mm.git
 - 評価ベンチマーク：`japanese-heron-bench`
 
 ```bash
-poetry run python sample.py
+rye run python3 sample.py
 ```
 
 ### 評価結果の確認
@@ -71,3 +76,12 @@ poetry run python sample.py
 - 修正や追加があれば，Pull Requestを送ってください
     - コードのフォーマッターの管理に [pre-commit](https://pre-commit.com)を使用しています
         - `pre-commit run --all-files` を実行することでコードのフォーマットを自動で行い，修正が必要な箇所が表示されます．全ての項目を修正してからコミットしてください
+
+- ライブラリの追加
+```
+rye add <package_name>
+```
+- ruffを用いたフォーマット
+```
+rye run ruff format .
+```
