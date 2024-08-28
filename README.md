@@ -52,7 +52,7 @@ rye sync
 - 評価ベンチマーク：`japanese-heron-bench`
 
 ```bash
-rye run python3 sample.py
+rye run python3 examples/sample.py
 ```
 
 ### 評価結果の確認
