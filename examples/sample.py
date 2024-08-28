@@ -19,7 +19,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task("japanese-heron-bench")
-dataset = task.dataset.select(range(10))
+dataset = task.dataset
 
 preds = []
 for doc in tqdm(dataset):
@@ -31,6 +31,10 @@ for doc in tqdm(dataset):
         "text": model.generate(image, text),
     }
     preds.append(pred)
+
+print("Evaluation start")
+# evaluate the predictions
+metrics, eval_results = task.compute_metrics(preds)
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
@@ -44,21 +48,29 @@ os.makedirs(evaluation_result_dir, exist_ok=True)
 
 unix_time = int(time.time())
 
-prediction_result_file_path = os.path.join(prediction_result_dir, f"{model_name}-{unix_time}.jsonl")
+prediction_result_file_path = os.path.join(
+    prediction_result_dir, f"{model_name}-{unix_time}.jsonl"
+)
 with open(os.path.join(prediction_result_file_path), "w") as f:
-    for pred in preds:
+    for pred, eval_result in zip(preds, eval_results):
+        result = {
+            "question_id": pred["question_id"],
+            "category": eval_result["category"],
+            "context": eval_result["context"],
+            "input_text": eval_result["input_text"],
+            "pred_text": pred["text"],
+            "score": eval_result["score"],
+            "score_gpt": eval_result["score_gpt"],
+        }
         f.write(json.dumps(pred, ensure_ascii=False) + "\n")
 print(f"Prediction result saved to {prediction_result_file_path}")
 
-# evaluate the predictions
-metrics, eval_results = task.compute_metrics(preds)
 
-eval_result_file_path = os.path.join(evaluation_result_dir, f"{model_name}-{unix_time}.jsonl")
+eval_result_file_path = os.path.join(
+    evaluation_result_dir, f"{model_name}-{unix_time}.jsonl"
+)
 with open(eval_result_file_path, "w") as f:
     f.write(json.dumps(metrics, ensure_ascii=False) + "\n")
-    for eval_result in eval_results:
-        f.write(json.dumps(eval_result, ensure_ascii=False) + "\n")
-
 
 print(f"Metrics: {metrics}")
 print(f"Evaluation result example: {eval_results[0]}")
