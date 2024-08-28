@@ -55,14 +55,11 @@ with open(os.path.join(prediction_result_file_path), "w") as f:
     for pred, eval_result in zip(preds, eval_results):
         result = {
             "question_id": pred["question_id"],
-            "category": eval_result["category"],
-            "context": eval_result["context"],
-            "input_text": eval_result["input_text"],
-            "pred_text": pred["text"],
+            "text": pred["text"],
             "score": eval_result["score"],
             "score_gpt": eval_result["score_gpt"],
         }
-        f.write(json.dumps(pred, ensure_ascii=False) + "\n")
+        f.write(json.dumps(result, ensure_ascii=False) + "\n")
 print(f"Prediction result saved to {prediction_result_file_path}")
 
 
