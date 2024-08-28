@@ -41,9 +41,11 @@ class VLM:
         generated_text = generated_text.split("[/INST]")[-1].strip()
         return generated_text
 
+
 if __name__ == "__main__":
     import requests
     from PIL import Image
+
     model = VLM()
     image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
     image = Image.open(requests.get(image_file, stream=True).raw)

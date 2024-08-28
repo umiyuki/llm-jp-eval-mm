@@ -33,6 +33,7 @@ def build_prompt(task="caption", input=None, sep="\n\n### "):
         p += sep + role + msg
     return p
 
+
 class VLM:
     def __init__(self) -> None:
         self.model_id = "stabilityai/japanese-stable-vlm"
@@ -48,11 +49,15 @@ class VLM:
     def generate(self, image, text: str):
         prompt = build_prompt(task="vqa", input=text)
         inputs = self.processor(images=image, return_tensors="pt")
-        text_encoding = self.tokenizer(prompt, add_special_tokens=False, return_tensors="pt")
+        text_encoding = self.tokenizer(
+            prompt, add_special_tokens=False, return_tensors="pt"
+        )
         inputs.update(text_encoding)
 
         # autoregressively complete prompt
-        output = self.model.generate(**inputs.to(self.device, dtype=self.model.dtype), max_new_tokens=100)[0]
+        output = self.model.generate(
+            **inputs.to(self.device, dtype=self.model.dtype), max_new_tokens=100
+        )[0]
 
         generated_text = self.tokenizer.decode(output, skip_special_tokens=True).strip()
         return generated_text

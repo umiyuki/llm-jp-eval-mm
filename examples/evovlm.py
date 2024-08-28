@@ -26,10 +26,21 @@ class VLM:
         inputs["input_ids"] = self.processor.apply_chat_template(
             messages, add_special_tokens=True
         )
-        output_ids = self.model.generate(**inputs.to(self.device))
+        output_ids = self.model.generate(**inputs.to(self.device), max_new_tokens=100)[
+            0
+        ]
         output_ids = output_ids[:, inputs.input_ids.shape[1] :]
         generated_text = self.processor.batch_decode(
             output_ids, skip_special_tokens=True
         )[0].strip()
         return generated_text
 
+
+if __name__ == "__main__":
+    import requests
+    from PIL import Image
+
+    model = VLM()
+    image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
+    image = Image.open(requests.get(image_file, stream=True).raw)
+    print(model.generate(image, "What is in the image?"))
