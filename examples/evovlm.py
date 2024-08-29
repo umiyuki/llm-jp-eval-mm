@@ -23,12 +23,10 @@ class VLM:
             {"role": "user", "content": text},
         ]
         inputs = self.processor.image_processor(images=image, return_tensors="pt")
-        inputs["input_ids"] = self.processor.apply_chat_template(
-            messages, add_special_tokens=True
+        inputs["input_ids"] = self.processor.tokenizer.apply_chat_template(
+            messages, return_tensors="pt"
         )
-        output_ids = self.model.generate(**inputs.to(self.device), max_new_tokens=100)[
-            0
-        ]
+        output_ids = self.model.generate(**inputs.to(self.device), max_new_tokens=100)
         output_ids = output_ids[:, inputs.input_ids.shape[1] :]
         generated_text = self.processor.batch_decode(
             output_ids, skip_special_tokens=True
