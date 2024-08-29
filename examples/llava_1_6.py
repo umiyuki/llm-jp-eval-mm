@@ -1,7 +1,6 @@
 import torch
 
 from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
-import torch
 
 
 class VLM:

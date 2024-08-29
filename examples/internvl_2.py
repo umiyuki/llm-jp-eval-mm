@@ -111,7 +111,6 @@ class VLM:
 
     def generate(self, image, text: str):
         prompt = f"<image>\n{text}"
-        inputs = self.tokenizer(prompt, return_tensors="pt")
         pixel_values = load_image(image, max_num=12).to(torch.bfloat16).cuda()
         generation_config = dict(max_new_tokens=100, do_sample=False)
 

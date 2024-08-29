@@ -10,11 +10,13 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument("--class_path", type=str, default="llava")
 parser.add_argument("--task_id", type=str, default="japanese-heron-bench")
+parser.add_argument("--openai_model_id", type=str, default="gpt-4o-mini-2024-07-18")
 
 args = parser.parse_args()
 
 class_path = args.class_path
 task_id = args.task_id
+openai_model_id = args.openai_model_id
 
 module = importlib.import_module(class_path)
 model = module.VLM()
@@ -22,7 +24,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task(task_id)
-dataset = task.dataset
+dataset = task.dataset.select(range(10))
 
 preds = []
 for doc in tqdm(dataset):
@@ -37,7 +39,7 @@ for doc in tqdm(dataset):
 
 print("Evaluation start")
 # evaluate the predictions
-metrics, eval_results = task.compute_metrics(preds)
+metrics, eval_results = task.compute_metrics(preds, model_id=openai_model_id)
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
@@ -53,14 +55,9 @@ unix_time = int(time.time())
 prediction_result_file_path = os.path.join(
     prediction_result_dir, f"{model_name}-{unix_time}.jsonl"
 )
+results = task.format_result(preds, eval_results)
 with open(os.path.join(prediction_result_file_path), "w") as f:
-    for pred, eval_result in zip(preds, eval_results):
-        result = {
-            "question_id": pred["question_id"],
-            "text": pred["text"],
-            "score": eval_result["score"],
-            "score_gpt": eval_result["score_gpt"],
-        }
+    for result in results:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
 print(f"Prediction result saved to {prediction_result_file_path}")
 

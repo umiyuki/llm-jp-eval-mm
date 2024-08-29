@@ -52,7 +52,7 @@ rye sync
 - 評価ベンチマーク：`japanese-heron-bench`
 
 ```bash
-rye run python3 examples/sample.py --class_path llava_1_5  --task_id japanese-heron-bench
+rye run python3 examples/sample.py --class_path llava_1_5  --task_id japanese-heron-bench --openai_model_id gpt-4o-mini-2024-07-18
 ```
 
 ### 評価結果の確認
