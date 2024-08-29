@@ -52,14 +52,23 @@ rye sync
 - 評価ベンチマーク：`japanese-heron-bench`
 
 ```bash
-rye run python3 examples/sample.py
+rye run python3 examples/sample.py --class_path llava_1_5
 ```
 
 ### 評価結果の確認
 
-- 評価結果のスコアと出力結果はjsonでreturnされます．
-  - 各自で適切な場所を指定してください．
-- 詳細な結果は`eval_results`でreturnされます，
+評価結果のスコアと出力結果は
+`result/evaluation/{model_id}-{unixtime}.jsonl`, `result/prediction/{model_id}-{unixtime}.jsonl` に保存されます.
+
+結果の確認については,
+```python
+rye run python3 examples/util.py
+```
+を実行することで,
+- 各exampleに対する各モデルの生成結果を載せたexcelファイル
+- 各モデルのスコアを載せたexcelファイル
+- 各モデルのスコア分布を示すグラフ画像
+が生成されます.
 
 ### 評価結果をW&Bで管理
 
