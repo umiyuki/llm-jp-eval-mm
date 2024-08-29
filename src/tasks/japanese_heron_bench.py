@@ -1,5 +1,3 @@
-import os
-
 from datasets import load_dataset
 from tqdm import tqdm
 
@@ -63,9 +61,9 @@ def parse_score(review):
         return [-1, -1]
 
 
-def ask_gpt4(content: str, max_tokens: int):
+def ask_gpt4(content: str, max_tokens: int, model_id: str = "gpt-4o-mini-2024-07-18"):
     completion = client.chat.completions.create(
-        model="gpt-4-turbo-2024-04-09",
+        model=model_id,
         messages=[
             {
                 "role": "system",
@@ -113,11 +111,12 @@ class JapaneseHeronBench(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(self, doc, pred):
+    def evaluate(self, doc, pred, model_id="gpt-4o-mini-2024-07-18"):
         """Evaluate a single prediction.
         Args:
         doc : a instance of the eval dataset
         pred : a dict with keys: { 'question_id', 'text' }
+        model_id : openai api's model name (default: "gpt-4o-mini-2024-07-18")
         Returns:
         eval_result: a dictionary with keys:
             { 'input_text', 'pred', 'context', 'category', 'answer', 'score', 'score_gpt' }
@@ -139,7 +138,7 @@ class JapaneseHeronBench(Task):
             f"If it is not relevant to the context, does not answer directly, or says the wrong thing, give it a low score.\n\n"
         )
 
-        completion = ask_gpt4(content, max_tokens=1024)
+        completion = ask_gpt4(content, max_tokens=1024, model_id=model_id)
         scores = parse_score(completion)
 
         eval_result = doc
@@ -149,11 +148,12 @@ class JapaneseHeronBench(Task):
         del doc["image"]
         return eval_result
 
-    def compute_metrics(self, preds):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18"):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path
             preds: [pred]
+            model_id: openai api's model name (default: "gpt-4o-mini-2024-07-18")
         Return:
             a dictionary with key: { 'score' : score }
         """
@@ -163,7 +163,7 @@ class JapaneseHeronBench(Task):
         for doc, pred in tqdm(
             zip(docs, preds), total=len(preds), desc="Evaluation ..."
         ):
-            eval_result = self.evaluate(doc, pred)
+            eval_result = self.evaluate(doc, pred, model_id=model_id)
             eval_results.append(eval_result)
 
         # average score for each category, and overall
@@ -174,7 +174,45 @@ class JapaneseHeronBench(Task):
                 continue
             avg_score = sum(scores) / len(scores)
             metrics[category] = avg_score
+        metrics["parse_error_count"] = sum(r["score"] == -1 for r in eval_results)
 
         metrics["overall"] = sum([r["score"] for r in eval_results]) / len(eval_results)
+        metrics["openai_model_id"] = model_id
 
         return metrics, eval_results
+
+    def format_result(self, preds: list[dict], eval_results: list[dict]) -> list[dict]:
+        """Format the result of the model.
+        Args:
+            preds:
+                list of dictionaries with keys:
+                {
+                    "question_id": str, "text": str,
+                }
+            eval_results:
+                list of dictionaries with keys:
+                {
+                    "score", "score_gpt", # etc.
+                }
+        Return:
+            dictonaries with keys:
+            {
+                    "question_id": str,
+                    "text": str,
+                    "score": float,
+                    "score_gpt": float,
+            }
+        """
+        assert len(preds) == len(
+            eval_results
+        ), "Length of preds and eval_results must be equal."
+        results = []
+        for pred, eval_result in zip(preds, eval_results):
+            result = {
+                "question_id": pred["question_id"],
+                "text": pred["text"],
+                "score": eval_result["score"],
+                "score_gpt": eval_result["score_gpt"],
+            }
+            results.append(result)
+        return results
