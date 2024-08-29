@@ -9,16 +9,19 @@ import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--class_path", type=str, default="llava")
+parser.add_argument("--task_id", type=str, default="japanese-heron-bench")
+
 args = parser.parse_args()
 
 class_path = args.class_path
+task_id = args.task_id
 
 module = importlib.import_module(class_path)
 model = module.VLM()
 model_id = model.model_id
 
 
-task = eval_mm.api.registry.get_task("japanese-heron-bench")
+task = eval_mm.api.registry.get_task(task_id)
 dataset = task.dataset
 
 preds = []
@@ -38,8 +41,7 @@ metrics, eval_results = task.compute_metrics(preds)
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
-
-result_dir = "result"
+result_dir = f"result/{task_id}"
 os.makedirs(result_dir, exist_ok=True)
 prediction_result_dir = os.path.join(result_dir, "prediction")
 os.makedirs(prediction_result_dir, exist_ok=True)

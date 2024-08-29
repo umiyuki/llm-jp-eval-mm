@@ -3,8 +3,14 @@ import pandas as pd
 import json
 import datasets
 import pathlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
 
-files = glob.glob("result/prediction/*.jsonl")
+task_id = "japanese-heron-bench"
+
+result_dir = f"result/{task_id}"
+files = glob.glob(os.path.join(result_dir, "prediction/*.jsonl"))
 print(files)
 
 
@@ -51,12 +57,8 @@ for file in files:
 
 
 print(df.head())
-df.to_excel("result/prediction.xlsx", index=False)
+df.to_excel(os.path.join(result_dir, "prediction.xlsx"), index=False)
 
-
-# box plot of the scores for each model
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # metrics_for_model = {
 #     "model_id": {
@@ -66,7 +68,6 @@ import seaborn as sns
 #         "overall": [],
 #     }
 # }
-
 metrics_for_model = {}
 for file in files:
     with open(file, "r") as f:
@@ -81,15 +82,6 @@ for file in files:
             data = json.loads(line)
             metrics_for_model[model_id][example["category"]].append(data["score"])
             metrics_for_model[model_id]["overall"].append(data["score"])
-
-# # plot the box plot
-# fig, axes = plt.subplots(len(metrics_for_model), 1, figsize=(10, 10))
-# for i, (model_id, metrics) in enumerate(metrics_for_model.items()):
-#     sns.boxplot(data=metrics, ax=axes[i])
-#     axes[i].set_title(model_id)
-#     axes[i].set_ylabel("score")
-# plt.tight_layout()
-# plt.savefig("result/boxplot.png")
 
 
 # プロット
@@ -115,11 +107,12 @@ plt.xlabel("Category")
 # outer legend
 plt.legend(title="Models", loc="upper left", bbox_to_anchor=(1, 1))
 plt.tight_layout()
-plt.savefig("result/stripplot.png")
+plt.savefig(os.path.join(result_dir, "stripplot.png"))
 
 
 # result/evaluation/*.jsonl to excel
-files = glob.glob("result/evaluation/*.jsonl")
+task_id = "japanese-heron-bench"
+files = glob.glob(os.path.join(result_dir, "evaluation/*.jsonl"))
 print(files)
 
 
@@ -143,4 +136,4 @@ for i, file in enumerate(files):
 
 print(df.head())
 
-df.to_excel("result/evaluation.xlsx", index=False)
+df.to_excel(os.path.join(result_dir, "evaluation.xlsx"), index=False)
