@@ -229,11 +229,3 @@ class JapaneseHeronBench(Task):
             }
             results.append(result)
         return results
-
-
-def test_compute_metrics():
-    task = JapaneseHeronBench()
-    preds = [
-        {"question_id": "1", "text": "text1"},
-        {"question_id": "2", "text": "text2"},
-    ]
