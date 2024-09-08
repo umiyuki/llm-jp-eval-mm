@@ -1,11 +1,10 @@
-# TODO: Implement metrics for model evaluation. Refer below URL for more details:
-# https://github.com/SakanaAI/evolutionary-model-merge/blob/main/evomerge/eval/metrics.py
+# Reference: https://github.com/SakanaAI/evolutionary-model-merge/blob/main/evomerge/eval/metrics.py
 
 import re
 from rouge_score import rouge_scorer, scoring
 from fugashi import Tagger
 import emoji
-# import neologdn TODO: fix c++12 error when installing neologdn
+# import neologdn FIXME: fix c++12 error when installing neologdn
 
 
 class MecabTokenizer:
@@ -34,7 +33,7 @@ class MecabTokenizer:
 
         text = remove_emoji(text)
         # see neologdn docs for details, but handles things like full/half width variation
-        # text = neologdn.normalize(text) TODO: fix c++12 error when installing neologdn
+        # text = neologdn.normalize(text) FIXME: fix c++12 error when installing neologdn
         text = white_space_fix(text)
         return text
 
