@@ -4,6 +4,7 @@ from tqdm import tqdm
 from ..api.registry import register_task
 from ..api.task import Task
 from ..utils.azure_client import client
+import numpy as np
 
 RULES: dict = {
     "coding": {
@@ -82,6 +83,8 @@ def ask_gpt4(content: str, max_tokens: int, model_id: str = "gpt-4o-mini-2024-07
 class JapaneseHeronBench(Task):
     def __init__(self, config=None) -> None:
         super().__init__(config)
+        self.category_list = ["conv", "detail", "complex"]
+        self.rules: dict = {k: RULES[k] for k in self.category_list}
 
     @property
     def dataset(self):
@@ -127,8 +130,8 @@ class JapaneseHeronBench(Task):
         category = doc["category"]
         answer_1 = doc["answer"]["gpt-4-0125-preview"]  # reference answer
         answer_2 = pred["text"]  # predicted answer
-        role = RULES[category]["role"]
-        prompt = RULES[category]["prompt"]
+        role = self.rules[category]["role"]
+        prompt = self.rules[category]["prompt"]
         content = (
             f'[Context]\n{doc["context"]}\n\n'
             f'[Question]\n{doc["input_text"]}\n\n'
@@ -168,15 +171,25 @@ class JapaneseHeronBench(Task):
 
         # average score for each category, and overall
         metrics = {}
-        for category in RULES.keys():
+        for category in self.category_list:
             scores = [r["score"] for r in eval_results if r["category"] == category]
+            score_gpts = [
+                r["score_gpt"] for r in eval_results if r["category"] == category
+            ]
             if len(scores) == 0:
                 continue
-            avg_score = sum(scores) / len(scores)
+            avg_score = np.mean(scores)
+            avs_score_rel = (
+                100 * np.mean(scores) / max(0.01, np.mean(score_gpts)) # divide by 0.01 when 0 division happens
+            )
             metrics[category] = avg_score
+            metrics[category + "_rel"] = avs_score_rel
         metrics["parse_error_count"] = sum(r["score"] == -1 for r in eval_results)
 
         metrics["overall"] = sum([r["score"] for r in eval_results]) / len(eval_results)
+        metrics["overall_rel"] = sum(
+            [metrics[category + "_rel"] for category in self.category_list]
+        ) / len(self.category_list)
         metrics["openai_model_id"] = model_id
 
         return metrics, eval_results
