@@ -180,7 +180,11 @@ class JapaneseHeronBench(Task):
                 continue
             avg_score = np.mean(scores)
             avs_score_rel = (
-                100 * np.mean(scores) / max(0.01, np.mean(score_gpts)) # divide by 0.01 when 0 division happens
+                100
+                * np.mean(scores)
+                / max(
+                    0.01, np.mean(score_gpts)
+                )  # divide by 0.01 when 0 division happens
             )
             metrics[category] = avg_score
             metrics[category + "_rel"] = avs_score_rel
