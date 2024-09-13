@@ -24,7 +24,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task(task_id)
-dataset = task.dataset.select(range(200))
+dataset = task.dataset#.select(range(200))
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
@@ -60,11 +60,6 @@ else:
         preds.append(pred)
 
 
-    results = task.format_result(preds, eval_results)
-    with open(os.path.join(prediction_result_file_path), "w") as f:
-        for result in results:
-            f.write(json.dumps(result, ensure_ascii=False) + "\n")
-    print(f"Prediction result saved to {prediction_result_file_path}")
 
 
 print("Evaluation start")
@@ -72,6 +67,11 @@ print("Evaluation start")
 metrics, eval_results = task.compute_metrics(preds, model_id=openai_model_id)
 
 
+results = task.format_result(preds, eval_results)
+with open(os.path.join(prediction_result_file_path), "w") as f:
+    for result in results:
+        f.write(json.dumps(result, ensure_ascii=False) + "\n")
+print(f"Prediction result saved to {prediction_result_file_path}")
 
 eval_result_file_path = os.path.join(
     evaluation_result_dir, f"{model_name}.jsonl"
