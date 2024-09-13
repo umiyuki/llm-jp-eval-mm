@@ -4,6 +4,7 @@ import re
 from rouge_score import rouge_scorer, scoring
 from fugashi import Tagger
 import emoji
+import unicodedata
 # import neologdn FIXME: fix c++12 error when installing neologdn
 
 
@@ -34,6 +35,7 @@ class MecabTokenizer:
         text = remove_emoji(text)
         # see neologdn docs for details, but handles things like full/half width variation
         # text = neologdn.normalize(text) FIXME: fix c++12 error when installing neologdn
+        text = unicodedata.normalize("NFKC", text)
         text = white_space_fix(text)
         return text
 
@@ -50,6 +52,7 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
         dict: dictionary with keys: { 'rouge1', 'rouge2', 'rougeL' }
         Each value is a float representing the ROUGE score (f-measure) * 100.
     """
+    assert isinstance(refs, list) and isinstance(preds, list), "refs and preds must be lists."
     tokenizer = MecabTokenizer()
     rouge_types = ["rouge1", "rouge2", "rougeL"]
     # mecab-based rouge
@@ -82,3 +85,16 @@ def test_rouge_ja():
     preds = ["私は犬です。", "私は猫です。"]
     scores = rouge_ja(refs, preds)
     assert pytest.approx(scores["rougeL"], 0.01) == 80.0
+    refs = ["池のほとりです。"]
+    preds = ["ここは湖の岸です。"]
+    scores = rouge_ja(refs, preds)
+    assert pytest.approx(scores["rougeL"], 0.01) == 50.0
+
+
+if __name__ == "__main__":
+    refs = ["晴れている"]
+    preds = ["この写真では、晴れた天気が描かれています。"]
+    print(rouge_ja(refs, preds))
+    print(rouge_ja(["白色"], ["サーフボードは白色です。"]))
+
+    print(rouge_ja(["黒"], ["乗り物の先頭は黒色です。"]))

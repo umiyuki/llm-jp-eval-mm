@@ -76,9 +76,9 @@ class JaVGVQA500(Task):
         """
 
         assert doc["question_id"] == pred["question_id"]
-
-        # TODO: Implement evaluation logic
-        scores = rouge_ja(doc["answer"], pred["text"])
+        print("answer:", doc["answer"], "pred:", pred["text"], "score:", rouge_ja([doc["answer"]], [pred["text"]]))
+        # print byte
+        scores = rouge_ja([doc["answer"]], [pred["text"]])
 
         eval_result = doc
         eval_result["score"] = scores["rougeL"]
