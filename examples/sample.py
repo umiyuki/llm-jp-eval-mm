@@ -24,7 +24,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task(task_id)
-dataset = task.dataset
+dataset = task.dataset.sele
 
 preds = []
 for doc in tqdm(dataset):

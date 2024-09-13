@@ -57,7 +57,7 @@ class JaVGVQA500(Task):
         return doc["image"]
 
     def doc_to_id(self, doc):
-        return doc["qa_id"]
+        return doc["question_id"]
 
     def process_pred(self, doc, pred):
         processed = doc
