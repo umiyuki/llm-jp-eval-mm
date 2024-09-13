@@ -24,22 +24,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task(task_id)
-dataset = task.dataset.sele
-
-preds = []
-for doc in tqdm(dataset):
-    image = task.doc_to_visual(doc)
-    text = task.doc_to_text(doc)
-    qid = task.doc_to_id(doc)
-    pred = {
-        "question_id": qid,
-        "text": model.generate(image, text),
-    }
-    preds.append(pred)
-
-print("Evaluation start")
-# evaluate the predictions
-metrics, eval_results = task.compute_metrics(preds, model_id=openai_model_id)
+dataset = task.dataset.select(range(200))
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
@@ -53,17 +38,43 @@ os.makedirs(evaluation_result_dir, exist_ok=True)
 unix_time = int(time.time())
 
 prediction_result_file_path = os.path.join(
-    prediction_result_dir, f"{model_name}-{unix_time}.jsonl"
+    prediction_result_dir, f"{model_name}.jsonl"
 )
-results = task.format_result(preds, eval_results)
-with open(os.path.join(prediction_result_file_path), "w") as f:
-    for result in results:
-        f.write(json.dumps(result, ensure_ascii=False) + "\n")
-print(f"Prediction result saved to {prediction_result_file_path}")
+
+
+# if prediciton is already done, load the prediction
+if os.path.exists(prediction_result_file_path):
+    with open(prediction_result_file_path, "r") as f:
+        preds = [json.loads(line) for line in f]
+    print(f"Prediction result loaded from {prediction_result_file_path}")
+else:
+    preds = []
+    for doc in tqdm(dataset):
+        image = task.doc_to_visual(doc)
+        text = task.doc_to_text(doc)
+        qid = task.doc_to_id(doc)
+        pred = {
+            "question_id": qid,
+            "text": model.generate(image, text),
+        }
+        preds.append(pred)
+
+
+    results = task.format_result(preds, eval_results)
+    with open(os.path.join(prediction_result_file_path), "w") as f:
+        for result in results:
+            f.write(json.dumps(result, ensure_ascii=False) + "\n")
+    print(f"Prediction result saved to {prediction_result_file_path}")
+
+
+print("Evaluation start")
+# evaluate the predictions
+metrics, eval_results = task.compute_metrics(preds, model_id=openai_model_id)
+
 
 
 eval_result_file_path = os.path.join(
-    evaluation_result_dir, f"{model_name}-{unix_time}.jsonl"
+    evaluation_result_dir, f"{model_name}.jsonl"
 )
 with open(eval_result_file_path, "w") as f:
     f.write(json.dumps(metrics, ensure_ascii=False) + "\n")
