@@ -8,6 +8,7 @@ import seaborn as sns
 import os
 import click
 
+
 @click.command()
 @click.option("--task_id", type=str, default="japanese-heron-bench")
 def main(task_id: str):
@@ -26,7 +27,9 @@ def main(task_id: str):
             if len(df) == 0:
                 df["question_id"] = [example["question_id"]]
             if example["question_id"] not in df["question_id"].values:
-                df = df._append({"question_id": example["question_id"]}, ignore_index=True)
+                df = df._append(
+                    {"question_id": example["question_id"]}, ignore_index=True
+                )
             answer = example["answer"]
             answer_models = [
                 "claude-3-opus-20240229",
@@ -36,10 +39,16 @@ def main(task_id: str):
             df.loc[df["question_id"] == example["question_id"], "category"] = example[
                 "category"
             ]
-            df.loc[df["question_id"] == example["question_id"], "context"] = example["context"]
-            df.loc[df["question_id"] == example["question_id"], "input_text"] = example["text"]
+            df.loc[df["question_id"] == example["question_id"], "context"] = example[
+                "context"
+            ]
+            df.loc[df["question_id"] == example["question_id"], "input_text"] = example[
+                "text"
+            ]
             for model_id in answer_models:
-                df.loc[df["question_id"] == example["question_id"], model_id] = answer[model_id]
+                df.loc[df["question_id"] == example["question_id"], model_id] = answer[
+                    model_id
+                ]
 
         for file in files:
             with open(file, "r") as f:
@@ -49,7 +58,9 @@ def main(task_id: str):
                     if len(df) == 0:
                         df["question_id"] = [data["question_id"]]
                     if data["question_id"] not in df["question_id"].values:
-                        df = df._append({"question_id": data["question_id"]}, ignore_index=True)
+                        df = df._append(
+                            {"question_id": data["question_id"]}, ignore_index=True
+                        )
                     df.loc[df["question_id"] == data["question_id"], model_id] = (
                         data["text"] + "\n" + "score: " + str(data["score"])
                     )
@@ -68,7 +79,9 @@ def main(task_id: str):
                 }
                 for example, line in zip(dataset, f):
                     data = json.loads(line)
-                    metrics_for_model[model_id][example["category"]].append(data["score"])
+                    metrics_for_model[model_id][example["category"]].append(
+                        data["score"]
+                    )
                     metrics_for_model[model_id]["overall"].append(data["score"])
         # プロット
         plt.figure(figsize=(10, 6))
@@ -98,7 +111,9 @@ def main(task_id: str):
         # result/evaluation/*.jsonl to excel
         files = glob.glob(os.path.join(result_dir, "evaluation/*.jsonl"))
         print(files)
-        model_ids = ["-".join(pathlib.Path(file).stem.split("-")[:-1]) for file in files]
+        model_ids = [
+            "-".join(pathlib.Path(file).stem.split("-")[:-1]) for file in files
+        ]
         print(model_ids)
         # model_id, detail, conv, complex, overall
         df = pd.DataFrame()
@@ -113,7 +128,6 @@ def main(task_id: str):
                 df.loc[i, "complex"] = data["complex"]
                 df.loc[i, "overall"] = data["overall"]
 
-
         print(df.head())
 
         df.to_excel(os.path.join(result_dir, "evaluation.xlsx"), index=False)
@@ -127,7 +141,9 @@ def main(task_id: str):
                     if len(df) == 0:
                         df["question_id"] = [data["question_id"]]
                     if data["question_id"] not in df["question_id"].values:
-                        df = df._append({"question_id": data["question_id"]}, ignore_index=True)
+                        df = df._append(
+                            {"question_id": data["question_id"]}, ignore_index=True
+                        )
                     df.loc[df["question_id"] == data["question_id"], model_id] = (
                         data["text"] + "\n" + "score: " + str(data["score"])
                     )
@@ -136,7 +152,9 @@ def main(task_id: str):
 
         files = glob.glob(os.path.join(result_dir, "evaluation/*.jsonl"))
         print(files)
-        model_ids = ["-".join(pathlib.Path(file).stem.split("-")[:-1]) for file in files]
+        model_ids = [
+            "-".join(pathlib.Path(file).stem.split("-")[:-1]) for file in files
+        ]
         print(model_ids)
 
         df = pd.DataFrame()
@@ -149,5 +167,7 @@ def main(task_id: str):
 
         print(df.head())
         df.to_excel(os.path.join(result_dir, "evaluation.xlsx"), index=True)
+
+
 if __name__ == "__main__":
     main()

@@ -52,7 +52,9 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
         dict: dictionary with keys: { 'rouge1', 'rouge2', 'rougeL' }
         Each value is a float representing the ROUGE score (f-measure) * 100.
     """
-    assert isinstance(refs, list) and isinstance(preds, list), "refs and preds must be lists."
+    assert isinstance(refs, list) and isinstance(
+        preds, list
+    ), "refs and preds must be lists."
     tokenizer = MecabTokenizer()
     rouge_types = ["rouge1", "rouge2", "rougeL"]
     # mecab-based rouge

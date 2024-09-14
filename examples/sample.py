@@ -24,7 +24,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task(task_id)
-dataset = task.dataset#.select(range(200))
+dataset = task.dataset  # .select(range(200))
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
@@ -37,9 +37,7 @@ os.makedirs(evaluation_result_dir, exist_ok=True)
 
 unix_time = int(time.time())
 
-prediction_result_file_path = os.path.join(
-    prediction_result_dir, f"{model_name}.jsonl"
-)
+prediction_result_file_path = os.path.join(prediction_result_dir, f"{model_name}.jsonl")
 
 
 # if prediciton is already done, load the prediction
@@ -60,8 +58,6 @@ else:
         preds.append(pred)
 
 
-
-
 print("Evaluation start")
 # evaluate the predictions
 metrics, eval_results = task.compute_metrics(preds, model_id=openai_model_id)
@@ -73,9 +69,7 @@ with open(os.path.join(prediction_result_file_path), "w") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
 print(f"Prediction result saved to {prediction_result_file_path}")
 
-eval_result_file_path = os.path.join(
-    evaluation_result_dir, f"{model_name}.jsonl"
-)
+eval_result_file_path = os.path.join(evaluation_result_dir, f"{model_name}.jsonl")
 with open(eval_result_file_path, "w") as f:
     f.write(json.dumps(metrics, ensure_ascii=False) + "\n")
 

@@ -76,7 +76,14 @@ class JaVGVQA500(Task):
         """
 
         assert doc["question_id"] == pred["question_id"]
-        print("answer:", doc["answer"], "pred:", pred["text"], "score:", rouge_ja([doc["answer"]], [pred["text"]]))
+        print(
+            "answer:",
+            doc["answer"],
+            "pred:",
+            pred["text"],
+            "score:",
+            rouge_ja([doc["answer"]], [pred["text"]]),
+        )
         # print byte
         scores = rouge_ja([doc["answer"]], [pred["text"]])
 
