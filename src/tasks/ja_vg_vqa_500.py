@@ -3,6 +3,7 @@ from tqdm import tqdm
 
 from ..api.registry import register_task
 from ..api.task import Task
+from ..utils.metrics import rouge_ja
 
 
 @register_task("ja-vg-vqa-500")
@@ -56,7 +57,7 @@ class JaVGVQA500(Task):
         return doc["image"]
 
     def doc_to_id(self, doc):
-        return doc["qa_id"]
+        return doc["question_id"]
 
     def process_pred(self, doc, pred):
         processed = doc
@@ -75,17 +76,24 @@ class JaVGVQA500(Task):
         """
 
         assert doc["question_id"] == pred["question_id"]
-
-        # TODO: Implement evaluation logic
-        # scores = rouge_l(doc["answer"], pred["text"])
+        print(
+            "answer:",
+            doc["answer"],
+            "pred:",
+            pred["text"],
+            "score:",
+            rouge_ja([doc["answer"]], [pred["text"]]),
+        )
+        # print byte
+        scores = rouge_ja([doc["answer"]], [pred["text"]])
 
         eval_result = doc
-        eval_result["score"] = 0.0  # scores["rouge-l"]
+        eval_result["score"] = scores["rougeL"]
 
         del doc["image"]
         return eval_result
 
-    def compute_metrics(self, preds):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18"):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path
