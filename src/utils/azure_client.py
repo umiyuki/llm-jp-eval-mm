@@ -92,6 +92,8 @@ class OpenAIChatAPI:
             )
         elif os.getenv("OPENAI_API_KEY") is not None:
             self._client = AsyncOpenAI()
+        else:
+            raise ValueError("API Key not found.")
 
     async def _async_batch_run_chatgpt(
         self,
