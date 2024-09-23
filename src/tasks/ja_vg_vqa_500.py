@@ -93,7 +93,7 @@ class JaVGVQA500(Task):
         del doc["image"]
         return eval_result
 
-    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18"):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=1):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path

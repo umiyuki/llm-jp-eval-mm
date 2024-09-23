@@ -8,9 +8,10 @@ import argparse
 import time
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--class_path", type=str, default="llava")
+parser.add_argument("--class_path", type=str, default="llava_1_5")
 parser.add_argument("--task_id", type=str, default="japanese-heron-bench")
 parser.add_argument("--openai_model_id", type=str, default="gpt-4o-mini-2024-07-18")
+parser.add_argument("--batch_size_for_evaluation", type=int, default=10)
 
 args = parser.parse_args()
 
@@ -24,7 +25,7 @@ model_id = model.model_id
 
 
 task = eval_mm.api.registry.get_task(task_id)
-dataset = task.dataset  # .select(range(200))
+dataset = task.dataset
 
 # save the predictions to jsonl file
 model_name = model_id.replace("/", "-")
@@ -60,7 +61,9 @@ else:
 
 print("Evaluation start")
 # evaluate the predictions
-metrics, eval_results = task.compute_metrics(preds, model_id=openai_model_id)
+metrics, eval_results = task.compute_metrics(
+    preds, model_id=openai_model_id, batch_size=args.batch_size_for_evaluation
+)
 
 
 results = task.format_result(preds, eval_results)
