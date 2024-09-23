@@ -20,15 +20,12 @@ task_id = args.task_id
 openai_model_id = args.openai_model_id
 
 module = importlib.import_module(class_path)
-model = module.VLM()
-model_id = model.model_id
-
+model_id = module.VLM.model_id.replace("/", "-")
 
 task = eval_mm.api.registry.get_task(task_id)
 dataset = task.dataset
 
 # save the predictions to jsonl file
-model_name = model_id.replace("/", "-")
 result_dir = f"result/{task_id}"
 os.makedirs(result_dir, exist_ok=True)
 prediction_result_dir = os.path.join(result_dir, "prediction")
@@ -38,7 +35,7 @@ os.makedirs(evaluation_result_dir, exist_ok=True)
 
 unix_time = int(time.time())
 
-prediction_result_file_path = os.path.join(prediction_result_dir, f"{model_name}.jsonl")
+prediction_result_file_path = os.path.join(prediction_result_dir, f"{model_id}.jsonl")
 
 
 # if prediciton is already done, load the prediction
@@ -47,6 +44,7 @@ if os.path.exists(prediction_result_file_path):
         preds = [json.loads(line) for line in f]
     print(f"Prediction result loaded from {prediction_result_file_path}")
 else:
+    model = module.VLM()
     preds = []
     for doc in tqdm(dataset):
         image = task.doc_to_visual(doc)
@@ -72,7 +70,7 @@ with open(os.path.join(prediction_result_file_path), "w") as f:
         f.write(json.dumps(result, ensure_ascii=False) + "\n")
 print(f"Prediction result saved to {prediction_result_file_path}")
 
-eval_result_file_path = os.path.join(evaluation_result_dir, f"{model_name}.jsonl")
+eval_result_file_path = os.path.join(evaluation_result_dir, f"{model_id}.jsonl")
 with open(eval_result_file_path, "w") as f:
     f.write(json.dumps(metrics, ensure_ascii=False) + "\n")
 

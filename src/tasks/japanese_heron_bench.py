@@ -116,7 +116,7 @@ class JapaneseHeronBench(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate_batch(
+    def evaluate(
         self, docs: list, preds: list, model_id="gpt-4o-mini-2024-07-18"
     ) -> list:
         """Evaluate batch prediction.
@@ -185,9 +185,9 @@ class JapaneseHeronBench(Task):
             for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
                 doc_batch = [docs[idx] for idx in batch_idx]
                 pred_batch = [preds[idx] for idx in batch_idx]
-                eval_result_batch = self.evaluate_batch(doc_batch, pred_batch)
+                eval_result_batch = self.evaluate(doc_batch, pred_batch)
                 eval_results.extend(eval_result_batch)
-                pbar.update(len(doc_batch))
+                pbar.update(len(batch_idx))
 
         # average score for each category, and overall
         metrics = {}

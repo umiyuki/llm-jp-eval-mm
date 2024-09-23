@@ -94,8 +94,9 @@ def load_image(image, input_size=448, max_num=12):
 
 
 class VLM:
+    model_id = "OpenGVLab/InternVL2-8B"
+
     def __init__(self) -> None:
-        self.model_id = "OpenGVLab/InternVL2-8B"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModel.from_pretrained(
             self.model_id,

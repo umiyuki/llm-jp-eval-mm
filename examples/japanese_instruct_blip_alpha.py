@@ -20,8 +20,9 @@ def build_prompt(prompt="", sep="\n\n### "):
 
 
 class VLM:
+    model_id = "stabilityai/japanese-instructblip-alpha"
+
     def __init__(self) -> None:
-        self.model_id = "stabilityai/japanese-instructblip-alpha"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModelForVision2Seq.from_pretrained(
             self.model_id,

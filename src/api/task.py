@@ -69,15 +69,10 @@ class Task(abc.ABC):
         """Converts a document to id."""
         pass
 
-    @staticmethod
-    def evaluate(self, doc, pred):
-        """Evaluate a single prediction."""
+    @abc.abstractmethod
+    def evaluate(self, docs: list, preds: list) -> list[dict]:
+        """Evaluate batch prediction."""
         pass
-
-    @staticmethod
-    def evaluate_batch(self, docs, preds):
-        """Evaluate a batch of predictions."""
-        return [self.evaluate(doc, pred) for doc, pred in zip(docs, preds)]
 
     @abc.abstractmethod
     def compute_metrics(self, preds):
