@@ -3,7 +3,7 @@ from tqdm import tqdm
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.azure_client import client
+from ..utils.azure_client import async_client, batch_iter
 import numpy as np
 
 RULES: dict = {
@@ -62,21 +62,23 @@ def parse_score(review):
         return [-1, -1]
 
 
-def ask_gpt4(content: str, max_tokens: int, model_id: str = "gpt-4o-mini-2024-07-18"):
-    completion = client.chat.completions.create(
-        model=model_id,
-        messages=[
+def ask_gpt4_batch(
+    content_list: str, max_tokens: int, model_id: str = "gpt-4o-mini-2024-07-18"
+):
+    message_list = [
+        [
             {
                 "role": "system",
                 "content": "You are a helpful and precise assistant for checking the quality of the answer.",
             },
             {"role": "user", "content": content},
-        ],
-        temperature=0,
-        max_tokens=max_tokens,
+        ]
+        for content in content_list
+    ]
+    completions = async_client.batch_generate_chat_response(
+        message_list, max_tokens=max_tokens, temperature=0
     )
-
-    return completion.choices[0].message.content
+    return completions
 
 
 @register_task("japanese-heron-bench")
@@ -114,60 +116,78 @@ class JapaneseHeronBench(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(self, doc, pred, model_id="gpt-4o-mini-2024-07-18"):
-        """Evaluate a single prediction.
+    def evaluate(
+        self, docs: list, preds: list, model_id="gpt-4o-mini-2024-07-18"
+    ) -> list:
+        """Evaluate batch prediction.
         Args:
-        doc : a instance of the eval dataset
-        pred : a dict with keys: { 'question_id', 'text' }
+        docs : list of instance of the eval dataset
+        preds : list of dict with keys: { 'question_id', 'text' }
         model_id : openai api's model name (default: "gpt-4o-mini-2024-07-18")
         Returns:
-        eval_result: a dictionary with keys:
+        eval_results: list of dictionary with keys:
             { 'input_text', 'pred', 'context', 'category', 'answer', 'score', 'score_gpt' }
         """
+        assert len(docs) == len(preds), "Length of docs and preds must be equal."
+        assert all(
+            doc["question_id"] == pred["question_id"] for doc, pred in zip(docs, preds)
+        ), "Question IDs must be the same."
+        # assert doc["question_id"] == pred["question_id"]
+        categories = [doc["category"] for doc in docs]
+        answer_1s = [
+            doc["answer"]["gpt-4-0125-preview"] for doc in docs
+        ]  # reference answer
+        answer_2s = [pred["text"] for pred in preds]  # predicted answer
+        roles = [self.rules[category]["role"] for category in categories]
+        prompts = [self.rules[category]["prompt"] for category in categories]
 
-        assert doc["question_id"] == pred["question_id"]
+        def build_content(doc, answer_1, answer_2, role, prompt):
+            return (
+                f'[Context]\n{doc["context"]}\n\n'
+                f'[Question]\n{doc["input_text"]}\n\n'
+                f"[{role} 1]\n{answer_1}\n\n[End of {role} 1]\n\n"
+                f"[{role} 2]\n{answer_2}\n\n[End of {role} 2]\n\n"
+                f"[System]\n{prompt}\n\n"
+                f"If it is not relevant to the context, does not answer directly, or says the wrong thing, give it a low score.\n\n"
+            )
 
-        category = doc["category"]
-        answer_1 = doc["answer"]["gpt-4-0125-preview"]  # reference answer
-        answer_2 = pred["text"]  # predicted answer
-        role = self.rules[category]["role"]
-        prompt = self.rules[category]["prompt"]
-        content = (
-            f'[Context]\n{doc["context"]}\n\n'
-            f'[Question]\n{doc["input_text"]}\n\n'
-            f"[{role} 1]\n{answer_1}\n\n[End of {role} 1]\n\n"
-            f"[{role} 2]\n{answer_2}\n\n[End of {role} 2]\n\n"
-            f"[System]\n{prompt}\n\n"
-            f"If it is not relevant to the context, does not answer directly, or says the wrong thing, give it a low score.\n\n"
-        )
+        contents = [
+            build_content(doc, answer_1, answer_2, role, prompt)
+            for doc, answer_1, answer_2, role, prompt in zip(
+                docs, answer_1s, answer_2s, roles, prompts
+            )
+        ]
+        completions = ask_gpt4_batch(contents, max_tokens=1024)
+        scores = [parse_score(completion) for completion in completions]
+        eval_results = []
+        for doc, pred, score in zip(docs, preds, scores):
+            eval_result = doc
+            eval_result["score"] = score[1]
+            eval_result["score_gpt"] = score[0]
+            eval_results.append(eval_result)
 
-        completion = ask_gpt4(content, max_tokens=1024, model_id=model_id)
-        scores = parse_score(completion)
+        return eval_results
 
-        eval_result = doc
-        eval_result["score"] = scores[1]
-        eval_result["score_gpt"] = scores[0]
-
-        del doc["image"]
-        return eval_result
-
-    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18"):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=10):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path
             preds: [pred]
             model_id: openai api's model name (default: "gpt-4o-mini-2024-07-18")
+            batch_size: batch size for evaluation
         Return:
             a dictionary with key: { 'score' : score }
         """
         eval_results = []
         docs = self.dataset
 
-        for doc, pred in tqdm(
-            zip(docs, preds), total=len(preds), desc="Evaluation ..."
-        ):
-            eval_result = self.evaluate(doc, pred, model_id=model_id)
-            eval_results.append(eval_result)
+        with tqdm(total=len(preds), desc="Evaluation ...") as pbar:
+            for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
+                doc_batch = [docs[idx] for idx in batch_idx]
+                pred_batch = [preds[idx] for idx in batch_idx]
+                eval_result_batch = self.evaluate(doc_batch, pred_batch)
+                eval_results.extend(eval_result_batch)
+                pbar.update(len(batch_idx))
 
         # average score for each category, and overall
         metrics = {}

@@ -4,6 +4,7 @@ from tqdm import tqdm
 from ..api.registry import register_task
 from ..api.task import Task
 from ..utils.metrics import rouge_ja
+from ..utils.azure_client import batch_iter
 
 
 @register_task("ja-vg-vqa-500")
@@ -64,36 +65,33 @@ class JaVGVQA500(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(self, doc, pred):
-        """Evaluate a single prediction.
+    def evaluate(self, docs: list, preds: list) -> list[dict]:
+        """Evaluate batch prediction.
         Args:
-        doc : a instance of the eval dataset
-        pred : a dict with keys: { 'question_id', 'text' }
-        model_id : openai api's model name (default: "gpt-4o-mini-2024-07-18")
+        doc : list of instance of the eval dataset
+        pred : list of dict with keys: { 'question_id', 'text' }
         Returns:
-        eval_result: a dictionary with keys:
+        eval_results: list of dictionary with keys:
             { 'input_text', 'pred', 'qa_id','answer', 'score' }
         """
+        assert len(docs) == len(preds), "Length of docs and preds must be equal."
+        assert all(
+            [
+                doc["question_id"] == pred["question_id"]
+                for doc, pred in zip(docs, preds)
+            ]
+        ), "Question IDs must be the same."
 
-        assert doc["question_id"] == pred["question_id"]
-        print(
-            "answer:",
-            doc["answer"],
-            "pred:",
-            pred["text"],
-            "score:",
-            rouge_ja([doc["answer"]], [pred["text"]]),
-        )
-        # print byte
-        scores = rouge_ja([doc["answer"]], [pred["text"]])
+        scores_list = [
+            rouge_ja([doc["answer"]], [pred["text"]]) for doc, pred in zip(docs, preds)
+        ]
+        eval_results = [doc for doc in docs]
+        for eval_result, scores in zip(eval_results, scores_list):
+            eval_result["score"] = scores["rougeL"]
 
-        eval_result = doc
-        eval_result["score"] = scores["rougeL"]
+        return eval_results
 
-        del doc["image"]
-        return eval_result
-
-    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18"):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=1):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path
@@ -107,11 +105,13 @@ class JaVGVQA500(Task):
         eval_results = []
         docs = self.dataset
 
-        for doc, pred in tqdm(
-            zip(docs, preds), total=len(preds), desc="Evaluation ..."
-        ):
-            eval_result = self.evaluate(doc, pred)
-            eval_results.append(eval_result)
+        with tqdm(total=len(preds), desc="Evaluation ...") as pbar:
+            for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
+                doc_batch = [docs[idx] for idx in batch_idx]
+                pred_batch = [preds[idx] for idx in batch_idx]
+                eval_results_batch = self.evaluate(doc_batch, pred_batch)
+                eval_results.extend(eval_results_batch)
+                pbar.update(len(batch_idx))
 
         # average score for each category, and overall
         metrics = {

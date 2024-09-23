@@ -4,8 +4,9 @@ from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
 
 
 class VLM:
+    model_id: str = "llava-hf/llava-v1.6-mistral-7b-hf"
+
     def __init__(self) -> None:
-        self.model_id = "llava-hf/llava-v1.6-mistral-7b-hf"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = LlavaNextForConditionalGeneration.from_pretrained(
             self.model_id, torch_dtype=torch.float16, low_cpu_mem_usage=True

@@ -4,8 +4,9 @@ import torch
 
 
 class VLM:
+    model_id = "SakanaAI/EvoVLM-JP-v1-7B"
+
     def __init__(self) -> None:
-        self.model_id = "SakanaAI/EvoVLM-JP-v1-7B"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModelForVision2Seq.from_pretrained(
             self.model_id, torch_dtype=torch.float16

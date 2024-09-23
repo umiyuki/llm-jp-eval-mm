@@ -70,8 +70,8 @@ class Task(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def evaluate(self, doc, pred):
-        """Evaluate a single prediction."""
+    def evaluate(self, docs: list, preds: list) -> list[dict]:
+        """Evaluate batch prediction."""
         pass
 
     @abc.abstractmethod
