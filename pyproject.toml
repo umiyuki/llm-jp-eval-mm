@@ -1,9 +1,8 @@
 [project]
 name = "llm-jp-eval-mm"
-version = "0.1.0"
 description = "llm-jp-eval-mm is a tool for evaluating Multi-Modal Large Language Models."
 authors = [
-    { name = "Silviase", email = "koki.maeda@nlp.c.titech.ac.jp" }
+    { name = "Silviase", email = "koki.maeda@nlp.c.titech.ac.jp" },
 ]
 dependencies = [
     "datasets>=2.21.0",
@@ -18,10 +17,20 @@ dependencies = [
 readme = "README.md"
 requires-python = ">= 3.8"
 
+dynamic = [
+    "version"
+]
+
+[project.urls]
+Repository = "https://github.com/llm-jp/llm-jp-eval-mm"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/_version.py"
+
 
 [tool.rye]
 managed = true
