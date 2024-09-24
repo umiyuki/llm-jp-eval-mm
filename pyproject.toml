@@ -31,6 +31,12 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 path = "src/_version.py"
 
+[tool.hatch.build]
+exclude = [
+    "examples",
+    "result",
+    "scripts",
+]
 
 [tool.rye]
 managed = true
