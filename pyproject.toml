@@ -29,7 +29,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = "src/_version.py"
+path = "src/eval_mm/_version.py"
 
 [tool.hatch.build]
 exclude = [
@@ -63,4 +63,4 @@ dev-dependencies = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/eval_mm"]
