@@ -1,7 +1,7 @@
 import json
 import os
 
-import src as eval_mm
+import eval_mm
 from tqdm import tqdm
 import importlib
 import argparse

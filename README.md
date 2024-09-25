@@ -1,4 +1,6 @@
 # LLM-jp-eval-mm
+[![pypi](https://img.shields.io/pypi/v/eval-mm.svg)](https://pypi.python.org/pypi/eval-mm)
+
 [ [**English**](./README_en.md) | 日本語 ]
 
 このツールは，複数のデータセットを横断して日本語マルチモーダル大規模言語モデルを自動評価するものです．
@@ -94,3 +96,10 @@ rye add <package_name>
 ```
 rye run ruff format .
 ```
+
+- PyPIへのリリース方法
+```
+git tag -a v0.x.x -m "version 0.x.x"
+git push origin --tags
+```
+
