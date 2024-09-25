@@ -3,6 +3,7 @@ name = "eval-mm"
 description = "eval-mm is a tool for evaluating Multi-Modal Large Language Models."
 authors = [
     { name = "Silviase", email = "koki.maeda@nlp.c.titech.ac.jp" },
+    { name = "speed1313", email = "sugiura.issa.q29@kyoto-u.jp" },
 ]
 dependencies = [
     "datasets>=2.21.0",
