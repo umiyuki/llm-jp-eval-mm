@@ -1,21 +1,20 @@
 import torch
-from transformers import AutoProcessor, LlavaForConditionalGeneration
+
+from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
 
 
 class VLM:
-    model_id: str = "llava-hf/llava-1.5-7b-hf"
+    model_id: str = "llava-hf/llava-v1.6-mistral-7b-hf"
 
     def __init__(self) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = LlavaForConditionalGeneration.from_pretrained(
-            self.model_id,
-            torch_dtype=torch.float16,
-            low_cpu_mem_usage=True,
+        self.model = LlavaNextForConditionalGeneration.from_pretrained(
+            self.model_id, torch_dtype=torch.float16, low_cpu_mem_usage=True
         )
-        self.processor = AutoProcessor.from_pretrained(self.model_id)
+        self.processor = LlavaNextProcessor.from_pretrained(self.model_id)
         self.model.to(self.device)
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         conversation = [
             {
                 "role": "user",
@@ -35,12 +34,12 @@ class VLM:
         )
 
         # autoregressively complete prompt
-        output = self.model.generate(**inputs, max_new_tokens=100)[0]
+        output = self.model.generate(**inputs, max_new_tokens=max_new_tokens)[0]
 
         generated_text = self.processor.decode(output, skip_special_tokens=True)
-        # extract the answer
-        answer = generated_text.split("ASSISTANT:")[-1].strip()
-        return answer
+        # split [INST] and return the last part
+        generated_text = generated_text.split("[/INST]")[-1].strip()
+        return generated_text
 
 
 if __name__ == "__main__":

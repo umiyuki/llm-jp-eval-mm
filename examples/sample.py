@@ -12,6 +12,7 @@ parser.add_argument("--class_path", type=str, default="llava_1_5")
 parser.add_argument("--task_id", type=str, default="japanese-heron-bench")
 parser.add_argument("--openai_model_id", type=str, default="gpt-4o-mini-2024-07-18")
 parser.add_argument("--batch_size_for_evaluation", type=int, default=10)
+parser.add_argument("--max_new_tokens", type=int, default=256)
 
 args = parser.parse_args()
 
@@ -52,7 +53,7 @@ else:
         qid = task.doc_to_id(doc)
         pred = {
             "question_id": qid,
-            "text": model.generate(image, text),
+            "text": model.generate(image, text, max_new_tokens=args.max_new_tokens),
         }
         preds.append(pred)
     with open(prediction_result_file_path, "w") as f:

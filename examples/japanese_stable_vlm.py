@@ -47,7 +47,7 @@ class VLM:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model.to(self.device)
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         prompt = build_prompt(task="vqa", input=text)
         inputs = self.processor(images=image, return_tensors="pt")
         text_encoding = self.tokenizer(
@@ -57,7 +57,8 @@ class VLM:
 
         # autoregressively complete prompt
         output = self.model.generate(
-            **inputs.to(self.device, dtype=self.model.dtype), max_new_tokens=100
+            **inputs.to(self.device, dtype=self.model.dtype),
+            max_new_tokens=max_new_tokens,
         )[0]
 
         generated_text = self.tokenizer.decode(output, skip_special_tokens=True).strip()

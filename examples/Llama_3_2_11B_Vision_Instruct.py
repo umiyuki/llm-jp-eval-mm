@@ -15,7 +15,7 @@ class VLM:
         )
         self.processor = AutoProcessor.from_pretrained(self.model_id)
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         messages = [
             {
                 "role": "user",
@@ -28,7 +28,7 @@ class VLM:
         inputs = self.processor(
             image, input_text, add_special_tokens=False, return_tensors="pt"
         ).to(self.model.device)
-        output_ids = self.model.generate(**inputs, max_new_tokens=100)
+        output_ids = self.model.generate(**inputs, max_new_tokens=max_new_tokens)
         generated_ids = [
             output_ids[len(input_ids) :]
             for input_ids, output_ids in zip(inputs.input_ids, output_ids)

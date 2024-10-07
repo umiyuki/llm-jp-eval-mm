@@ -16,7 +16,7 @@ class VLM:
             self.model_id, min_pixels=min_pixels, max_pixels=max_pixels
         )
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         conversation = [
             {
                 "role": "user",
@@ -37,7 +37,7 @@ class VLM:
         )
         inputs = inputs.to(self.model.device)
         print("Input token length:", inputs.input_ids.shape[1])
-        output_ids = self.model.generate(**inputs, max_new_tokens=100)
+        output_ids = self.model.generate(**inputs, max_new_tokens=max_new_tokens)
         generated_ids = [
             output_ids[len(input_ids) :]
             for input_ids, output_ids in zip(inputs.input_ids, output_ids)
