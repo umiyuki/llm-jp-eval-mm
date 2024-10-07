@@ -3,7 +3,7 @@ from tqdm import tqdm
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.azure_client import async_client, batch_iter
+from ..utils.azure_client import OpenAIChatAPI, batch_iter
 import numpy as np
 
 RULES: dict = {
@@ -63,8 +63,8 @@ def parse_score(review):
 
 
 def ask_gpt4_batch(
-    content_list: str, max_tokens: int, model_id: str = "gpt-4o-mini-2024-07-18"
-):
+    content_list: str, max_tokens: int, async_client: OpenAIChatAPI
+) -> list:
     message_list = [
         [
             {
@@ -87,6 +87,7 @@ class JapaneseHeronBench(Task):
         super().__init__(config)
         self.category_list = ["conv", "detail", "complex"]
         self.rules: dict = {k: RULES[k] for k in self.category_list}
+        self.client = OpenAIChatAPI()
 
     @property
     def dataset(self):
@@ -157,7 +158,7 @@ class JapaneseHeronBench(Task):
                 docs, answer_1s, answer_2s, roles, prompts
             )
         ]
-        completions = ask_gpt4_batch(contents, max_tokens=1024)
+        completions = ask_gpt4_batch(contents, 1024, self.client)
         scores = [parse_score(completion) for completion in completions]
         eval_results = []
         for doc, pred, score in zip(docs, preds, scores):
