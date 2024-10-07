@@ -55,6 +55,9 @@ else:
             "text": model.generate(image, text),
         }
         preds.append(pred)
+    with open(prediction_result_file_path, "w") as f:
+        for pred in preds:
+            f.write(json.dumps(pred, ensure_ascii=False) + "\n")
 
 
 print("Evaluation start")
