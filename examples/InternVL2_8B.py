@@ -110,10 +110,10 @@ class VLM:
         )
         self.model.to(self.device)
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         prompt = f"<image>\n{text}"
         pixel_values = load_image(image, max_num=12).to(torch.bfloat16).cuda()
-        generation_config = dict(max_new_tokens=100, do_sample=False)
+        generation_config = dict(max_new_tokens=max_new_tokens, do_sample=False)
 
         response = self.model.chat(
             self.tokenizer, pixel_values, prompt, generation_config

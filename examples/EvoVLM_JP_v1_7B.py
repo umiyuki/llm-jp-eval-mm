@@ -14,7 +14,7 @@ class VLM:
         self.processor = AutoProcessor.from_pretrained(self.model_id)
         self.model.to(self.device)
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         text = f"<image>{text}"
         messages = [
             {
@@ -27,7 +27,9 @@ class VLM:
         inputs["input_ids"] = self.processor.tokenizer.apply_chat_template(
             messages, return_tensors="pt"
         )
-        output_ids = self.model.generate(**inputs.to(self.device), max_new_tokens=100)
+        output_ids = self.model.generate(
+            **inputs.to(self.device), max_new_token=max_new_tokens
+        )
         output_ids = output_ids[:, inputs.input_ids.shape[1] :]
         generated_text = self.processor.batch_decode(
             output_ids, skip_special_tokens=True

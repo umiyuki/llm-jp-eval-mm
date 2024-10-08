@@ -34,7 +34,7 @@ class VLM:
         )
         self.model.to(self.device)
 
-    def generate(self, image, text: str):
+    def generate(self, image, text: str, max_new_tokens: int = 256):
         prompt = build_prompt(prompt=text)
         inputs = self.processor(images=image, return_tensors="pt")
         text_encoding = self.tokenizer(
@@ -50,7 +50,7 @@ class VLM:
         output = self.model.generate(
             **inputs.to(self.device, dtype=self.model.dtype),
             num_beams=5,
-            max_new_tokens=100,
+            max_new_tokens=max_new_tokens,
             min_length=1,
         )
         # TODO: white space return problem some times

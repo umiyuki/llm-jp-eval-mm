@@ -51,32 +51,30 @@ async def _retry_on_error(
 
 class OpenAIChatAPI:
     """
-    OpenAI APIのラッパーです。
-    `batch_generate_chat_response`メソッドを使用して、複数のチャットリクエストを並列で送信できます。
-
+    Wrapper class of the OpenAI API client.
+    You can use the `batch_generate_chat_response` method to send multiple chat requests in parallel.
     Args:
-        model: 使用するモデルの名前。
+        model: The model name to use. (default: "gpt-4o-mini-2024-07-18")
     """
 
     def __init__(
         self,
-        model: str = "gpt-4o-mini-2024-07-18",  # ハッカソン中は gpt-4o-mini 以外使用禁止です
+        model: str = "gpt-4o-mini-2024-07-18",
     ) -> None:
         self.model = model
 
-        if (
-            os.getenv("AZURE_OPENAI_KEY") is not None
-            and os.getenv("AZURE_OPENAI_ENDPOINT") is not None
-        ):
-            self._client = AsyncAzureOpenAI(
+        if os.getenv("AZURE_OPENAI_KEY") and os.getenv("AZURE_OPENAI_ENDPOINT"):
+            self.client = AsyncAzureOpenAI(
                 api_key=os.getenv("AZURE_OPENAI_KEY"),
                 api_version="2023-05-15",
                 azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             )
         elif os.getenv("OPENAI_API_KEY") is not None:
-            self._client = AsyncOpenAI()
+            self.client = AsyncOpenAI()
         else:
-            raise ValueError("API Key not found.")
+            raise ValueError(
+                "API Key not found. Please set the OPENAI_API_KEY or AZURE_OPENAI_KEY environment variables."
+            )
 
     async def _async_batch_run_chatgpt(
         self,
@@ -110,7 +108,7 @@ class OpenAIChatAPI:
             _retry_on_error(
                 # Define an anonymous function with a lambda expression and pass it,
                 # and call it inside the _retry_on_error function
-                openai_call=lambda x=ms: self._client.chat.completions.create(
+                openai_call=lambda x=ms: self.client.chat.completions.create(
                     model=self.model,
                     messages=x,
                     **kwargs,
@@ -141,15 +139,14 @@ class OpenAIChatAPI:
         return f"{self.__class__.__name__}(model={self.model})"
 
 
-async_client = OpenAIChatAPI()
-
 if __name__ == "__main__":
     # テストコード
+    client = OpenAIChatAPI()
     messages_list = [
         [{"role": "system", "content": "こんにちは"}],
         [{"role": "user", "content": "今日の天気は？"}],
     ]
-    responses = async_client.batch_generate_chat_response(messages_list)
+    responses = client.batch_generate_chat_response(messages_list)
     print(responses)
     dataset = [messages_list[0] for _ in range(10)]
     # progress bar
@@ -158,6 +155,6 @@ if __name__ == "__main__":
     with tqdm(total=len(dataset)) as pbar:
         for i, items in tqdm(enumerate(batch_iter(dataset, batch_size=4))):
             print(items)
-            responses = async_client.batch_generate_chat_response(items)
+            responses = client.batch_generate_chat_response(items)
             print(responses)
             pbar.update(len(items))

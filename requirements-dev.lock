@@ -226,7 +226,7 @@ sympy==1.13.3
     # via torch
 tiktoken==0.7.0
 timm==1.0.9
-tokenizers==0.19.1
+tokenizers==0.20.0
     # via transformers
 torch==2.4.1
     # via accelerate
@@ -240,7 +240,7 @@ tqdm==4.66.5
     # via nltk
     # via openai
     # via transformers
-transformers==4.44.2
+transformers==4.45.1
     # via transformers-stream-generator
 transformers-stream-generator==0.0.5
 triton==3.0.0
