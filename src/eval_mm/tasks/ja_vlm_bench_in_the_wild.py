@@ -26,9 +26,9 @@ class JaVLMBenchIntheWild(Task):
         else:
             raise ValueError("Dataset is None, cannot rename column.")
         # add question_id
-        self._dataset = self._dataset.map(lambda example, idx: {'question_id': idx}, with_indices=True)
-
-
+        self._dataset = self._dataset.map(
+            lambda example, idx: {"question_id": idx}, with_indices=True
+        )
 
     def prepare_dataset(self, config) -> Dataset:
         # データセットをロード
