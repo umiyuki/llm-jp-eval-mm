@@ -5,7 +5,6 @@ from rouge_score import rouge_scorer, scoring
 from fugashi import Tagger
 import emoji
 import unicodedata
-
 # import neologdn FIXME: fix c++12 error when installing neologdn
 
 
