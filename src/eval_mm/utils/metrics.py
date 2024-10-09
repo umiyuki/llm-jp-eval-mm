@@ -7,7 +7,6 @@ import emoji
 import unicodedata
 
 # import neologdn FIXME: fix c++12 error when installing neologdn
-from ..utils.azure_client import OpenAIChatAPI, batch_iter
 
 
 class MecabTokenizer:
@@ -93,30 +92,6 @@ def test_rouge_ja():
     preds = ["ここは湖の岸です。"]
     scores = rouge_ja(refs, preds)
     assert pytest.approx(scores["rougeL"], 0.01) == 50.0
-
-
-def ask_llm_batch(
-    content_list: str, max_tokens: int, async_client: OpenAIChatAPI
-) -> list:
-    message_list = [
-        [
-            {
-                "role": "system",
-                "content": "You are a helpful and precise assistant for checking the quality of the answer.",
-            },
-            {"role": "user", "content": content},
-        ]
-        for content in content_list
-    ]
-    completions = async_client.batch_generate_chat_response(
-        message_list, max_tokens=max_tokens, temperature=0
-    )
-    return completions
-
-
-def llmasajudge_multi_image_vqa(docs: list, preds: list) -> list[dict]:
-    # TODO: implement this function
-    return {"score": 0.0}
 
 
 if __name__ == "__main__":

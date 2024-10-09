@@ -3,14 +3,15 @@ from tqdm import tqdm
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.metrics import llmasajudge_multi_image_vqa
-from ..utils.azure_client import batch_iter
+from ..utils.azure_client import OpenAIChatAPI, batch_iter
+from ..utils.templates import qa_pointwise
 
 
-@register_task("ja_multi_image_vqa")
+@register_task("ja-multi-image-vqa")
 class JAMultiImageVQA(Task):
     def __init__(self, config=None) -> None:
         super().__init__(config)
+        self.client = OpenAIChatAPI()
 
     @property
     def dataset(self):
@@ -69,13 +70,38 @@ class JAMultiImageVQA(Task):
             ]
         ), "Question IDs must be the same."
 
-        scores_list = [
-            llmasajudge_multi_image_vqa([doc["answer"]], [pred["text"]])
-            for doc, pred in zip(docs, preds)
+        def build_message(template, doc, pred):
+            content = template.format(
+                input_text=doc["input_text"],
+                pred=pred["text"],
+                answer=doc["answer"],
+            )
+            message = [{"role": "user", "content": content}]
+            return message
+
+        messages = [
+            build_message(qa_pointwise, doc, pred) for doc, pred in zip(docs, preds)
         ]
+        completions = self.client.batch_generate_chat_response(
+            messages,
+            max_tokens=256,  # TODO: make this configurable
+            temperature=0.0,
+        )
+
+        def parse_score(completion):
+            text = completion["choices"][0]["message"]["content"]
+            print(text)
+            return {"score": 0}
+
+        scores = [parse_score(completion) for completion in completions]
+
         eval_results = [doc for doc in docs]
-        for eval_result, scores in zip(eval_results, scores_list):
-            eval_result["score"] = scores["score"]
+        eval_results = []
+        for doc, pred, score in zip(docs, preds, scores):
+            eval_result = doc
+            eval_result["pred"] = pred["text"]
+            eval_result["score"] = score["score"]
+            eval_results.append(eval_result)
 
         return eval_results
 
