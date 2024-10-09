@@ -102,7 +102,7 @@ def load_images(images: Union[Image.Image, list[Image.Image]]):
             tuples += (load_image(image).to(torch.bfloat16).cuda(),)
         return torch.cat(tuples, dim=0)
     else:
-        return load_image(images)
+        return load_image(images).to(torch.bfloat16).cuda()
 
 
 # 画像の数だけ <image> をpromptの先頭に追加する
