@@ -522,21 +522,13 @@ class JMMMU(Task):
     def prepare_task(self, config) -> None:
         self._dataset = self.prepare_dataset(config)
         self._dataset = self._dataset.map(
-            lambda example: {
-                "question": jmmmu_doc_to_text(example),
-                "image": jmmmu_doc_to_visual(example)[
-                    0
-                ],  # TODO: JMMMMUに複数画像があったらバグ
-                "question_id": example["id"],
-                "answer": example["answer"],
+            lambda x: {
+                "input_text": jmmmu_doc_to_text(x),
+                "question_id": x["id"],
+                "answer": x["answer"],
             }
         )
-
-        # rename columns
-        if self._dataset is not None:
-            self._dataset = self._dataset.rename_column("question", "input_text")
-        else:
-            raise ValueError("Dataset is None, cannot rename column.")
+        # image is not instanciated as the list of images cannot contained in the dataset
 
     def prepare_dataset(self, config) -> Dataset:
         # データセットをロード
@@ -553,13 +545,14 @@ class JMMMU(Task):
                 dataset = concatenate_datasets(
                     [dataset, load_dataset("JMMMU/JMMMU", category, split="test")]
                 )
+        #dataset = load_dataset("JMMMU/JMMMU", "Music", split="test")
         return dataset
 
     def doc_to_text(self, doc):
         return doc["input_text"]
 
     def doc_to_visual(self, doc):
-        return doc["image"]
+        return jmmmu_doc_to_visual(doc)
 
     def doc_to_id(self, doc):
         return doc["question_id"]

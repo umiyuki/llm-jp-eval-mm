@@ -23,16 +23,14 @@ class VLM:
     model_id = "stabilityai/japanese-instructblip-alpha"
 
     def __init__(self) -> None:
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModelForVision2Seq.from_pretrained(
             self.model_id,
             trust_remote_code=True,
-        )
+        ).to("cuda")
         self.processor = BlipImageProcessor.from_pretrained(self.model_id)
         self.tokenizer = LlamaTokenizer.from_pretrained(
             "novelai/nerdstash-tokenizer-v1", additional_special_tokens=["▁▁"]
         )
-        self.model.to(self.device)
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
         prompt = build_prompt(prompt=text)
@@ -48,7 +46,7 @@ class VLM:
 
         # autoregressively complete prompt
         output = self.model.generate(
-            **inputs.to(self.device, dtype=self.model.dtype),
+            **inputs.to(self.model.device),
             num_beams=5,
             max_new_tokens=max_new_tokens,
             min_length=1,

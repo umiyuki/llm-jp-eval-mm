@@ -47,6 +47,7 @@ dill==0.3.8
 distro==1.9.0
     # via openai
 einops==0.8.0
+    # via s2wrapper
 emoji==2.13.2
     # via eval-mm
 et-xmlfile==1.1.0
@@ -207,6 +208,8 @@ requests==2.32.3
 rouge-score==0.1.2
     # via eval-mm
 ruff==0.6.7
+s2wrapper @ git+https://github.com/bfshi/scaling_on_scales.git@ea1435a5e2aa7dadded22de2329d4d657d0aa164
+    # via eval-mm
 safetensors==0.4.5
     # via accelerate
     # via timm
@@ -240,7 +243,7 @@ tqdm==4.66.5
     # via nltk
     # via openai
     # via transformers
-transformers==4.45.1
+transformers==4.45.2
     # via transformers-stream-generator
 transformers-stream-generator==0.0.5
 triton==3.0.0

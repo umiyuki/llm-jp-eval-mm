@@ -1,7 +1,7 @@
 import glob
 import pandas as pd
 import json
-import datasets
+from datasets import Dataset, concatenate_datasets, load_dataset
 import pathlib
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -20,7 +20,7 @@ def main(task_id: str):
     print(model_ids)
 
     if task_id == "japanese-heron-bench":
-        dataset = datasets.load_dataset("Silviase/Japanese-Heron-Bench", split="train")
+        dataset = load_dataset("Silviase/Japanese-Heron-Bench", split="train")
         # question id, model_1's answer, model_2's answer, model_3's answer, ...
         df = pd.DataFrame()
         for example in dataset:
@@ -120,6 +120,7 @@ def main(task_id: str):
         for i, file in enumerate(files):
             with open(file, "r") as f:
                 model_id = "-".join(pathlib.Path(file).stem.split("-")[:-1])
+                print(model_id)
                 line = f.readline()
                 data = json.loads(line)
                 df.loc[i, "model_id"] = model_id
@@ -127,6 +128,14 @@ def main(task_id: str):
                 df.loc[i, "conv"] = data["conv"]
                 df.loc[i, "complex"] = data["complex"]
                 df.loc[i, "overall"] = data["overall"]
+                df.loc[i, "parse_error_count"] = data["parse_error_count"]
+                df.loc[i, "detail_rel"] = data["detail_rel"]
+                df.loc[i, "conv_rel"] = data["conv_rel"]
+                df.loc[i, "complex_rel"] = data["complex_rel"]
+                df.loc[i, "overall_rel"] = data["overall_rel"]
+                df.loc[i, "openai_model_id"] = data["openai_model_id"]
+
+        # {"conv": 5.142857142857143, "conv_rel": 63.90532544378699, "detail": 5.333333333333333, "detail_rel": 67.87878787878788, "complex": 4.975, "complex_rel": 60.48632218844985, "parse_error_count": 1, "overall": 5.116504854368932, "overall_rel": 64.09014517034156, "openai_model_id": "gpt-4o-mini-2024-07-18"}
 
         print(df.head())
 
@@ -147,6 +156,29 @@ def main(task_id: str):
                     df.loc[df["question_id"] == data["question_id"], model_id] = (
                         data["text"] + "\n" + "score: " + str(data["score"])
                     )
+
+        dataset = load_dataset("SakanaAI/JA-VG-VQA-500", split="test")
+
+        # flatten "qas" to q/a/id triplets
+        def flatten_sample(sample):
+            dataset = {
+                "image_id": [sample["image_id"] for _ in sample["qas"]],
+                "image": [sample["image"] for _ in sample["qas"]],
+                "qa_id": [qa["qa_id"] for qa in sample["qas"]],
+                "question": [qa["question"] for qa in sample["qas"]],
+                "answer": [qa["answer"] for qa in sample["qas"]],
+            }
+            return Dataset.from_dict(dataset)
+
+        fragments = []
+        for i, sample in enumerate(dataset):
+            data_fragment = flatten_sample(sample)
+            fragments.append(data_fragment)
+
+        ds = concatenate_datasets(fragments)
+        df["question_id"] = ds["qa_id"]
+        df["question"] = ds["question"]
+        df["answer"] = ds["answer"]
         print(df.head())
         df.to_excel(os.path.join(result_dir, "prediction.xlsx"), index=False)
 
@@ -155,7 +187,50 @@ def main(task_id: str):
         model_ids = [
             "-".join(pathlib.Path(file).stem.split("-")[:-1]) for file in files
         ]
-        print(model_ids)
+        print("model_id", model_ids)
+
+        df = pd.DataFrame()
+        for file in files:
+            with open(file, "r") as f:
+                model_id = "-".join(pathlib.Path(file).stem.split("-")[:-1])
+                line = f.readline()
+                data = json.loads(line)
+                df.loc[model_id, "rougeL"] = data["rougeL"]
+
+        print(df.head())
+        df.to_excel(os.path.join(result_dir, "evaluation.xlsx"), index=True)
+
+    elif task_id == "ja-vlm-bench-in-the-wild":
+        df = pd.DataFrame()
+        for file in files:
+            with open(file, "r") as f:
+                model_id = "-".join(pathlib.Path(file).stem.split("-")[:-1])
+                for line in f:
+                    data = json.loads(line)
+                    if len(df) == 0:
+                        df["question_id"] = [data["question_id"]]
+                    if data["question_id"] not in df["question_id"].values:
+                        df = df._append(
+                            {"question_id": data["question_id"]}, ignore_index=True
+                        )
+                    df.loc[df["question_id"] == data["question_id"], model_id] = (
+                        data["text"] + "\n" + "score: " + str(data["score"])
+                    )
+
+        ds = load_dataset("SakanaAI/JA-VLM-Bench-In-the-Wild", split="test")
+        ds = ds.map(lambda example, idx: {"question_id": idx}, with_indices=True)
+        df["question_id"] = ds["question_id"]
+        df["question"] = ds["question"]
+        df["answer"] = ds["answer"]
+        print(df.head())
+        df.to_excel(os.path.join(result_dir, "prediction.xlsx"), index=False)
+
+        files = glob.glob(os.path.join(result_dir, "evaluation/*.jsonl"))
+        print(files)
+        model_ids = [
+            "-".join(pathlib.Path(file).stem.split("-")[:-1]) for file in files
+        ]
+        print("model_id", model_ids)
 
         df = pd.DataFrame()
         for file in files:
