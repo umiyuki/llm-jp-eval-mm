@@ -1,4 +1,3 @@
-import torch
 from transformers import LlamaTokenizer, AutoModelForVision2Seq, BlipImageProcessor
 from PIL import Image
 import requests

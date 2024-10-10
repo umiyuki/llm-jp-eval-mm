@@ -1,9 +1,9 @@
-import torch
 from openai import AzureOpenAI
 import os
 from io import BytesIO
 import base64
 import requests
+
 
 def encode_image_to_base64(image):
     buffered = BytesIO()
@@ -11,15 +11,16 @@ def encode_image_to_base64(image):
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
     return img_str
 
+
 class VLM:
     model_id: str = "gpt-4o-2024-05-13"
-    def __init__(self) -> None:
 
+    def __init__(self) -> None:
         self.client = AzureOpenAI(
-                api_key=os.getenv("AZURE_OPENAI_KEY"),
-                api_version="2023-05-15",
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            )
+            api_key=os.getenv("AZURE_OPENAI_KEY"),
+            api_version="2023-05-15",
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        )
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
         message = []
@@ -46,9 +47,7 @@ class VLM:
                 )
             message = [message_base]
         else:
-
             image_base64 = encode_image_to_base64(image)
-            # 画像で一言のお題
             message = [
                 {
                     "role": "user",
@@ -67,12 +66,14 @@ class VLM:
                     ],
                 }
             ]
-        response = self.client.chat.completions.create(
-            model=self.model_id,
-            messages=message,
-            max_tokens=max_new_tokens
-        )
-        return response.choices[0].message.content
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_id, messages=message, max_tokens=max_new_tokens
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print("Error:", e)
+            return "Error"
 
 
 if __name__ == "__main__":

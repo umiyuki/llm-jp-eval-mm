@@ -2,7 +2,11 @@ import requests
 from PIL import Image
 import torch
 from mantis.models.conversation import Conversation, SeparatorStyle
-from mantis.models.mllava import chat_mllava, LlavaForConditionalGeneration, MLlavaProcessor
+from mantis.models.mllava import (
+    chat_mllava,
+    LlavaForConditionalGeneration,
+    MLlavaProcessor,
+)
 from mantis.models.mllava.utils import conv_templates
 
 
@@ -20,10 +24,15 @@ conv_templates["llama_3"] = conv_llama_3_elyza
 
 class VLM:
     model_id = "SakanaAI/Llama-3-EvoVLM-JP-v2"
+
     def __init__(self) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = LlavaForConditionalGeneration.from_pretrained(self.model_id, torch_dtype=torch.float16, device_map=self.device).eval()
-        self.processor = MLlavaProcessor.from_pretrained("TIGER-Lab/Mantis-8B-siglip-llama3")
+        self.model = LlavaForConditionalGeneration.from_pretrained(
+            self.model_id, torch_dtype=torch.float16, device_map=self.device
+        ).eval()
+        self.processor = MLlavaProcessor.from_pretrained(
+            "TIGER-Lab/Mantis-8B-siglip-llama3"
+        )
         self.processor.tokenizer.pad_token = self.processor.tokenizer.eos_token
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
@@ -39,7 +48,9 @@ class VLM:
         else:
             text = "<image>\n" + text
             images = [image]
-        response, history = chat_mllava(text, images, self.model, self.processor, **generation_kwargs)
+        response, history = chat_mllava(
+            text, images, self.model, self.processor, **generation_kwargs
+        )
         return response
 
 

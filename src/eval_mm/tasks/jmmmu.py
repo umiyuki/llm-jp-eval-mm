@@ -80,8 +80,7 @@ def construct_prompt(doc):
 
 def jmmmu_doc_to_text(doc):
     question = construct_prompt(doc)
-    # if config["metadata"]["interleaved_format"]:
-    #     question = replace_images_tokens(question)
+    question = replace_images_tokens(question)  # TODO: check if this is necessary
     return question
 
 
@@ -545,7 +544,7 @@ class JMMMU(Task):
                 dataset = concatenate_datasets(
                     [dataset, load_dataset("JMMMU/JMMMU", category, split="test")]
                 )
-        #dataset = load_dataset("JMMMU/JMMMU", "Music", split="test")
+        # dataset = load_dataset("JMMMU/JMMMU", "Music", split="test")
         return dataset
 
     def doc_to_text(self, doc):

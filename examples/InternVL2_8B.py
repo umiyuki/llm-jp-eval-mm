@@ -103,7 +103,7 @@ class VLM:
             low_cpu_mem_usage=True,
             use_flash_attn=True,
             trust_remote_code=True,
-            device_map = "auto",
+            device_map="auto",
         )
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_id, trust_remote_code=True, use_fast=False
@@ -116,11 +116,19 @@ class VLM:
         if len(image) > 1:
             pixel_values_list = []
             for img in image:
-                pixel_values = load_image(img, max_num=12).to(self.model.device).to(self.model.dtype)
+                pixel_values = (
+                    load_image(img, max_num=12)
+                    .to(self.model.device)
+                    .to(self.model.dtype)
+                )
                 pixel_values_list.append(pixel_values)
             pixel_values = torch.cat(pixel_values_list, dim=0)
         else:
-            pixel_values = load_image(image[0], max_num=12).to(self.model.device).to(self.model.dtype)
+            pixel_values = (
+                load_image(image[0], max_num=12)
+                .to(self.model.device)
+                .to(self.model.dtype)
+            )
         generation_config = dict(max_new_tokens=max_new_tokens, do_sample=False)
 
         response = self.model.chat(
