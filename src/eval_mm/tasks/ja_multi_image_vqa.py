@@ -38,7 +38,9 @@ class JAMultiImageVQA(Task):
         return dataset
 
     def doc_to_text(self, doc):
-        return doc["input_text"]
+        # delete redundant image tags
+        text = re.sub(r"<image> ", "", doc["input_text"])
+        return text
 
     def doc_to_visual(self, doc):
         print("CAUTION: This task provides MULTIPLE images.")
