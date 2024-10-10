@@ -6,7 +6,7 @@ from typing import Union
 
 
 class VLM:
-    model_id = "meta-llama/Llama-3.2-11B-Vision-Instruct"
+    model_id = "Kendamarron/Llama-3.2-11B-Vision-Instruct-Swallow-8B-Merge"
 
     def __init__(self) -> None:
         self.model = MllamaForConditionalGeneration.from_pretrained(
