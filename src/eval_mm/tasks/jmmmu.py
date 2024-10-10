@@ -101,7 +101,7 @@ def jmmmu_doc_to_visual(doc):
         )
     )
     print("image_tokens", image_tokens)
-    visual = [doc[image_token] for image_token in image_tokens]
+    visual = [doc[image_token].convert("RGB") for image_token in image_tokens]
     print("visual", visual)
     return visual
 
