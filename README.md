@@ -60,7 +60,7 @@ rye run python3 examples/sample.py --class_path llava_1_5  --task_id japanese-he
 ### 評価結果の確認
 
 評価結果のスコアと出力結果は
-`result/{task_id}/evaluation/{model_id}-{unixtime}.jsonl`, `result/{task_id}/prediction/{model_id}-{unixtime}.jsonl` に保存されます.
+`result/{task_id}/evaluation/{model_id}.jsonl`, `result/{task_id}/prediction/{model_id}.jsonl` に保存されます.
 
 japanese-heron-benchベンチマークについての結果の確認については,
 ```python
