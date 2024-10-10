@@ -122,22 +122,38 @@ class VLM:
     model_id = "OpenGVLab/InternVL2-8B"
 
     def __init__(self) -> None:
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = AutoModel.from_pretrained(
             self.model_id,
             torch_dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
             use_flash_attn=True,
             trust_remote_code=True,
+            device_map="auto",
         )
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_id, trust_remote_code=True, use_fast=False
         )
-        self.model.to(self.device)
 
-    def generate(self, images, text: str, max_new_tokens: int = 256):
-        prompt = add_image_tags(images, text)
-        pixel_values = load_images(images)
+    def generate(self, image, text: str, max_new_tokens: int = 256):
+        if "<image>" not in text:
+            prompt = "<image>\n" + text
+        prompt = text
+        if len(image) > 1:
+            pixel_values_list = []
+            for img in image:
+                pixel_values = (
+                    load_image(img, max_num=12)
+                    .to(self.model.device)
+                    .to(self.model.dtype)
+                )
+                pixel_values_list.append(pixel_values)
+            pixel_values = torch.cat(pixel_values_list, dim=0)
+        else:
+            pixel_values = (
+                load_image(image[0], max_num=12)
+                .to(self.model.device)
+                .to(self.model.dtype)
+            )
         generation_config = dict(max_new_tokens=max_new_tokens, do_sample=False)
 
         response = self.model.chat(

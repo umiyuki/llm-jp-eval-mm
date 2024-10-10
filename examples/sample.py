@@ -13,6 +13,7 @@ parser.add_argument("--task_id", type=str, default="japanese-heron-bench")
 parser.add_argument("--openai_model_id", type=str, default="gpt-4o-mini-2024-07-18")
 parser.add_argument("--batch_size_for_evaluation", type=int, default=10)
 parser.add_argument("--max_new_tokens", type=int, default=256)
+parser.add_argument("--overwrite", action="store_true")
 
 args = parser.parse_args()
 
@@ -40,7 +41,7 @@ prediction_result_file_path = os.path.join(prediction_result_dir, f"{model_id}.j
 
 
 # if prediciton is already done, load the prediction
-if os.path.exists(prediction_result_file_path):
+if os.path.exists(prediction_result_file_path) and not args.overwrite:
     with open(prediction_result_file_path, "r") as f:
         preds = [json.loads(line) for line in f]
     print(f"Prediction result loaded from {prediction_result_file_path}")
@@ -48,9 +49,14 @@ else:
     model = module.VLM()
     preds = []
     for doc in tqdm(dataset):
+        print("doc", doc)
         image = task.doc_to_visual(doc)
         text = task.doc_to_text(doc)
         qid = task.doc_to_id(doc)
+        print("image", image)
+        print("text", text)
+        print("qid", qid)
+
         pred = {
             "question_id": qid,
             "text": model.generate(image, text, max_new_tokens=args.max_new_tokens),
