@@ -25,7 +25,7 @@ Fluent: The response is well-organized and easy to read.
 
 ## Evaluation Steps
 STEP 1: Assess the response in aspects of instruction following, groundedness,completeness, and fluency according to the criteria.
-STEP 2: Score based on the rubric.
+STEP 2: Provide overall score based on the rubric in the format of `Score: X` where X is the score you assign to the response.
 
 # Question, Reference Answer and AI-generated Response
 ## Question

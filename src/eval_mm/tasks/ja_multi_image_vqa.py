@@ -1,5 +1,6 @@
 from datasets import Dataset, concatenate_datasets, load_dataset
 from tqdm import tqdm
+import re
 
 from ..api.registry import register_task
 from ..api.task import Task
@@ -84,14 +85,18 @@ class JAMultiImageVQA(Task):
         ]
         completions = self.client.batch_generate_chat_response(
             messages,
-            max_tokens=256,  # TODO: make this configurable
+            max_tokens=1024,
             temperature=0.0,
         )
 
         def parse_score(completion):
-            text = completion["choices"][0]["message"]["content"]
-            print(text)
-            return {"score": 0}
+            # find Score: X
+            score = re.search(r"Score: (\d)", completion)
+            score = int(score.group(1)) if score else 1
+            if score not in [1, 2, 3, 4, 5]:
+                raise ValueError("Score Value Error.")
+
+            return {"score": score, "rationale": completion}
 
         scores = [parse_score(completion) for completion in completions]
 
@@ -101,6 +106,7 @@ class JAMultiImageVQA(Task):
             eval_result = doc
             eval_result["pred"] = pred["text"]
             eval_result["score"] = score["score"]
+            eval_result["rationale"] = score["rationale"]
             eval_results.append(eval_result)
 
         return eval_results
