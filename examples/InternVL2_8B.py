@@ -3,6 +3,7 @@ import torchvision.transforms as T
 from PIL import Image
 from torchvision.transforms.functional import InterpolationMode
 from transformers import AutoModel, AutoTokenizer
+from typing import Union
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
@@ -93,6 +94,30 @@ def load_image(image, input_size=448, max_num=12):
     return pixel_values
 
 
+# 画像の数だけ画像を読み込んでcatする
+def load_images(images: Union[Image.Image, list[Image.Image]]):
+    if isinstance(images, list):
+        tuples = ()
+        for image in images:
+            tuples += (load_image(image).to(torch.bfloat16).cuda(),)
+        return torch.cat(tuples, dim=0)
+    else:
+        return load_image(images).to(torch.bfloat16).cuda()
+
+
+# 画像の数だけ <image> をpromptの先頭に追加する
+def add_image_tags(images: Union[Image.Image, list[Image.Image]], prompt: str) -> str:
+    if isinstance(images, list):
+        num_images = len(images)
+    else:
+        num_images = 1
+
+    image_tags = "<image> " * num_images
+    new_prompt = image_tags + prompt
+
+    return new_prompt
+
+
 class VLM:
     model_id = "OpenGVLab/InternVL2-8B"
 
@@ -110,9 +135,9 @@ class VLM:
         )
         self.model.to(self.device)
 
-    def generate(self, image, text: str, max_new_tokens: int = 256):
-        prompt = f"<image>\n{text}"
-        pixel_values = load_image(image, max_num=12).to(torch.bfloat16).cuda()
+    def generate(self, images, text: str, max_new_tokens: int = 256):
+        prompt = add_image_tags(images, text)
+        pixel_values = load_images(images)
         generation_config = dict(max_new_tokens=max_new_tokens, do_sample=False)
 
         response = self.model.chat(
