@@ -34,7 +34,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via nltk
-datasets==2.18.0
+datasets==3.0.1
     # via eval-mm
 dill==0.3.8
     # via datasets
@@ -93,8 +93,6 @@ packaging==24.1
 pandas==2.2.3
     # via datasets
 pyarrow==17.0.0
-    # via datasets
-pyarrow-hotfix==0.6
     # via datasets
 pydantic==2.9.2
     # via openai
