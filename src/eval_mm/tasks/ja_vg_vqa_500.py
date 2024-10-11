@@ -139,6 +139,7 @@ class JaVGVQA500(Task):
             "rougeL": sum([doc["rougeL"] for doc in eval_results]) / len(eval_results),
             "llm_as_a_judge": sum([doc["llm_as_a_judge"] for doc in eval_results])
             / len(eval_results),
+            "openai_model_id": model_id,
         }
 
         return metrics, eval_results

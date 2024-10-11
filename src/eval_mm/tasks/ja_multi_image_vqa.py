@@ -112,6 +112,7 @@ class JAMultiImageVQA(Task):
         # average score for each category, and overall
         metrics = {
             "score": sum([doc["score"] for doc in eval_results]) / len(eval_results),
+            "openai_model_id": model_id,
         }
 
         return metrics, eval_results

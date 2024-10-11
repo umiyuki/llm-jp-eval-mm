@@ -101,7 +101,7 @@ def llm_as_a_judge(client, template, questions, answers, preds, batch_size, mode
     for ms in tqdm(messages_list, desc="Evaluating LLM as a Judge"):
         completion.extend(
             client.batch_generate_chat_response(
-                ms, max_tokens=1024, temperature=0.0, model_name=model_name
+                ms, max_tokens=1024, temperature=0.0, seed=0, model_name=model_name
             )
         )
 
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         llm_as_a_judge(
             client,
             "質問: {input_text}\n予測: {pred}\n正解: {answer}\n",
-            ["これは何色ですか？"],
+            ["人間とAIの関係性について答えてください。"],
             ["黒"],
             ["黒色です。"],
             batch_size=1,
