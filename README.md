@@ -49,9 +49,22 @@ rye sync
 
 ### サンプルコードの実行
 
-現在のサンプルコードは`sample.py`です．
-- 評価モデル：`EvoVLMv1`
+現在のサンプルコードは`examples/sample.py`ですが，評価モデルは追加することが可能です．`examples/`以下に含まれる`{モデル名}.py`を参考に，同様のファイルを作成することで，新たな評価モデルを追加することができます．
+`examples/evaluate.sh`は，`examples/sample.py`を実行するためのスクリプトです．複数のベンチマーク・モデルを指定することで，一括で評価を行うことができます．
+実行するためのコマンドは以下のとおりです．
+
+```bash
+rye run bash examples/evaluate.sh
+```
+
+`examples/evaluate.sh`の現在の設定は以下の通りです．
+
+- 評価モデル：`llava 1.5`
 - 評価ベンチマーク：`japanese-heron-bench`
+- OpenAIモデル（LLM-as-a-judgeのために利用）：`gpt-4o-mini-2024-07-18`
+
+`sample.py`を直接実行しても同じ結果が得られます．
+その場合は以下のコマンドを実行してください．
 
 ```bash
 rye run python3 examples/sample.py --class_path llava_1_5  --task_id japanese-heron-bench --openai_model_id gpt-4o-mini-2024-07-18
