@@ -3,14 +3,16 @@ from tqdm import tqdm
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.metrics import rouge_ja
-from ..utils.azure_client import batch_iter
+from ..utils.metrics import rouge_ja, llm_as_a_judge
+from ..utils.azure_client import OpenAIChatAPI
+from ..utils.templates import qa_pointwise
 
 
 @register_task("ja-vg-vqa-500")
 class JaVGVQA500(Task):
     def __init__(self, config=None) -> None:
         super().__init__(config)
+        self.client = OpenAIChatAPI()
 
     @property
     def dataset(self):
@@ -65,7 +67,7 @@ class JaVGVQA500(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(self, docs: list, preds: list) -> list[dict]:
+    def evaluate(self, docs, preds, batch_size, model_name) -> dict:
         """Evaluate batch prediction.
         Args:
         doc : list of instance of the eval dataset
@@ -74,20 +76,42 @@ class JaVGVQA500(Task):
         eval_results: list of dictionary with keys:
             { 'input_text', 'pred', 'qa_id','answer', 'score' }
         """
-        assert len(docs) == len(preds), "Length of docs and preds must be equal."
-        assert all(
-            [
-                doc["question_id"] == pred["question_id"]
-                for doc, pred in zip(docs, preds)
-            ]
-        ), "Question IDs must be the same."
+        rouge_score_list = []
+        from concurrent.futures import ProcessPoolExecutor
 
-        scores_list = [
-            rouge_ja([doc["answer"]], [pred["text"]]) for doc, pred in zip(docs, preds)
-        ]
-        eval_results = [doc for doc in docs]
-        for eval_result, scores in zip(eval_results, scores_list):
-            eval_result["score"] = scores["rougeL"]
+        with ProcessPoolExecutor() as executor:
+            for doc, pred in tqdm(
+                zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
+            ):
+                future = executor.submit(rouge_ja, [doc["answer"]], [pred["text"]])
+                rouge_score_list.append(future)
+            rouge_score_list = [future.result() for future in rouge_score_list]
+
+        input_text_list = [doc["input_text"] for doc in docs]
+        answer_list = [doc["answer"] for doc in docs]
+        pred_list = [pred["text"] for pred in preds]
+        llm_as_a_judge_score_list = llm_as_a_judge(
+            self.client,
+            qa_pointwise,
+            input_text_list,
+            answer_list,
+            pred_list,
+            batch_size,
+            model_name,
+        )
+        eval_results = []
+        for doc, pred, rouge_score, llm_as_a_judge_score in zip(
+            docs, preds, rouge_score_list, llm_as_a_judge_score_list
+        ):
+            eval_result = {
+                "input_text": doc["input_text"],
+                "pred": pred["text"],
+                "qa_id": doc["question_id"],
+                "answer": doc["answer"],
+                "score_rougeL": rouge_score["rougeL"],
+                "score_llm_as_a_judge": llm_as_a_judge_score["score"],
+            }
+            eval_results.append(eval_result)
 
         return eval_results
 
@@ -105,17 +129,14 @@ class JaVGVQA500(Task):
         eval_results = []
         docs = self.dataset
 
-        with tqdm(total=len(preds), desc="Evaluation ...") as pbar:
-            for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
-                doc_batch = [docs[idx] for idx in batch_idx]
-                pred_batch = [preds[idx] for idx in batch_idx]
-                eval_results_batch = self.evaluate(doc_batch, pred_batch)
-                eval_results.extend(eval_results_batch)
-                pbar.update(len(batch_idx))
+        eval_results = self.evaluate(docs, preds, batch_size, model_id)
 
-        # average score for each category, and overall
         metrics = {
-            "rougeL": sum([doc["score"] for doc in eval_results]) / len(eval_results),
+            "rougeL": sum([doc["score_rougeL"] for doc in eval_results])
+            / len(eval_results),
+            "llm_as_a_judge": sum([doc["score_llm_as_a_judge"] for doc in eval_results])
+            / len(eval_results),
+            "openai_model_id": model_id,
         }
 
         return metrics, eval_results
@@ -149,7 +170,8 @@ class JaVGVQA500(Task):
             result = {
                 "question_id": pred["question_id"],
                 "text": pred["text"],
-                "score": eval_result["score"],
+                "score_rougeL": eval_result["score_rougeL"],
+                "score_llm_as_a_judge": eval_result["score_llm_as_a_judge"],
             }
             results.append(result)
         return results

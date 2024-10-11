@@ -1,5 +1,4 @@
 from datasets import load_dataset
-from tqdm import tqdm
 
 from ..api.registry import register_task
 from ..api.task import Task
@@ -63,7 +62,7 @@ def parse_score(review):
 
 
 def ask_gpt4_batch(
-    content_list: str, max_tokens: int, async_client: OpenAIChatAPI
+    content_list: str, max_tokens: int, async_client: OpenAIChatAPI, model_name: str
 ) -> list:
     message_list = [
         [
@@ -76,7 +75,11 @@ def ask_gpt4_batch(
         for content in content_list
     ]
     completions = async_client.batch_generate_chat_response(
-        message_list, max_tokens=max_tokens, temperature=0
+        message_list,
+        max_tokens=max_tokens,
+        temperature=0,
+        seed=0,
+        model_name=model_name,
     )
     return completions
 
@@ -117,23 +120,16 @@ class JapaneseHeronBench(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(
-        self, docs: list, preds: list, model_id="gpt-4o-mini-2024-07-18"
-    ) -> list:
+    def evaluate(self, docs: list, preds: list, model_id: str) -> list:
         """Evaluate batch prediction.
         Args:
         docs : list of instance of the eval dataset
         preds : list of dict with keys: { 'question_id', 'text' }
-        model_id : openai api's model name (default: "gpt-4o-mini-2024-07-18")
+        model_id : openai api's model name
         Returns:
         eval_results: list of dictionary with keys:
             { 'input_text', 'pred', 'context', 'category', 'answer', 'score', 'score_gpt' }
         """
-        assert len(docs) == len(preds), "Length of docs and preds must be equal."
-        assert all(
-            doc["question_id"] == pred["question_id"] for doc, pred in zip(docs, preds)
-        ), "Question IDs must be the same."
-        # assert doc["question_id"] == pred["question_id"]
         categories = [doc["category"] for doc in docs]
         answer_1s = [
             doc["answer"]["gpt-4-0125-preview"] for doc in docs
@@ -158,10 +154,10 @@ class JapaneseHeronBench(Task):
                 docs, answer_1s, answer_2s, roles, prompts
             )
         ]
-        completions = ask_gpt4_batch(contents, 1024, self.client)
+        completions = ask_gpt4_batch(contents, 1024, self.client, model_id)
         scores = [parse_score(completion) for completion in completions]
         eval_results = []
-        for doc, pred, score in zip(docs, preds, scores):
+        for doc, score in zip(docs, scores):
             eval_result = doc
             eval_result["score"] = score[1]
             eval_result["score_gpt"] = score[0]
@@ -182,13 +178,11 @@ class JapaneseHeronBench(Task):
         eval_results = []
         docs = self.dataset
 
-        with tqdm(total=len(preds), desc="Evaluation ...") as pbar:
-            for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
-                doc_batch = [docs[idx] for idx in batch_idx]
-                pred_batch = [preds[idx] for idx in batch_idx]
-                eval_result_batch = self.evaluate(doc_batch, pred_batch)
-                eval_results.extend(eval_result_batch)
-                pbar.update(len(batch_idx))
+        for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
+            doc_batch = [docs[idx] for idx in batch_idx]
+            pred_batch = [preds[idx] for idx in batch_idx]
+            eval_result_batch = self.evaluate(doc_batch, pred_batch, model_id)
+            eval_results.extend(eval_result_batch)
 
         # average score for each category, and overall
         metrics = {}
