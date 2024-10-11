@@ -77,20 +77,16 @@ class JaVGVQA500(Task):
             { 'input_text', 'pred', 'qa_id','answer', 'score' }
         """
         rouge_score_list = []
-        from concurrent.futures import ProcessPoolExecutor
+        from concurrent.futures import ThreadPoolExecutor
 
-        with ProcessPoolExecutor() as executor:
-            futures = [
-                executor.submit(rouge_ja, [doc["answer"]], [pred["text"]])
-                for doc, pred in zip(docs, preds)
-            ]
+        with ThreadPoolExecutor() as executor:
+            for doc, pred in tqdm(
+                zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
+            ):
+                future = executor.submit(rouge_ja, [doc["answer"]], [pred["text"]])
+                rouge_score_list.append(future)
+            rouge_score_list = [future.result() for future in rouge_score_list]
 
-            # Using as_completed to track progress
-            for future in tqdm(futures, total=len(futures), desc="Evaluating ROUGE"):
-                rouge_score_list.append(future.result())
-        # for doc, pred in tqdm(
-        #     zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
-        # ):
         input_text_list = [doc["input_text"] for doc in docs]
         answer_list = [doc["answer"] for doc in docs]
         pred_list = [pred["text"] for pred in preds]

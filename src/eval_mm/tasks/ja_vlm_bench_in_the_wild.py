@@ -70,10 +70,8 @@ class JaVLMBenchIntheWild(Task):
             ):
                 future = executor.submit(rouge_ja, [doc["answer"]], [pred["text"]])
                 rouge_score_list.append(future)
+            rouge_score_list = [future.result() for future in rouge_score_list]
 
-        # for doc, pred in tqdm(
-        #     zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
-        # ):
         input_text_list = [doc["input_text"] for doc in docs]
         answer_list = [doc["answer"] for doc in docs]
         pred_list = [pred["text"] for pred in preds]
