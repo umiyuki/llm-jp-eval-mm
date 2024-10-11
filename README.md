@@ -6,11 +6,10 @@
 このツールは，複数のデータセットを横断して日本語マルチモーダル大規模言語モデルを自動評価するものです．
 以下の機能を提供します．
 
-- 既存の日本語評価データを利用し，テキスト生成タスクの評価データセットに変換
-- 複数データセットを横断して大規模言語モデルの評価を実行
+- 既存の日本語評価データを利用し，マルチモーダルテキスト生成タスクの評価データセットに変換して提供
+- 推論結果を用いた大規模言語モデルの評価・メトリクス計算
 
 データフォーマットの詳細，サポートしているデータの一覧については，[DATASET.md](./DATASET.md)を参照ください．
-
 
 ## 目次
 
@@ -25,6 +24,10 @@
   - [Contribution](#contribution)
 
 ## 環境構築
+
+### GitHubをCloneする場合
+
+eval-mmは仮想環境の管理にryeを用いています．
 
 1. リポジトリをクローンして移動する
 ```bash
@@ -41,16 +44,34 @@ cd llm-jp-eval-mm
 rye sync
 ```
 
-1. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください.
+3. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください.
+
+以上で環境構築は終了です.
+
+### PyPIでインストールする
+
+1. PyPIにリリースされているeval-mmを利用する場合，`pip`コマンドを用いて仮想環境に含めることができます．
+
+```bash
+pip install eval_mm
+```
+
+2. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください.
 
 以上で環境構築は終了です.
 
 ## 評価方法
 
-### サンプルコードの実行
+### 評価の実行
 
-現在のサンプルコードは`examples/sample.py`ですが，評価モデルは追加することが可能です．`examples/`以下に含まれる`{モデル名}.py`を参考に，同様のファイルを作成することで，新たな評価モデルを追加することができます．
+評価の実行のために，サンプルコード`examples/sample.py`を提供しています．
+
+`examples/{モデル名}.py`として含まれているモデルは，その推論方法に限りサポートしています．
+
+新たな推論方法・新たなモデルでの評価を実行したい場合，既存の`examples/{モデル名}.py`を参考に同様のファイルを作成することで，評価を実行することができます．
+
 `examples/evaluate.sh`は，`examples/sample.py`を実行するためのスクリプトです．複数のベンチマーク・モデルを指定することで，一括で評価を行うことができます．
+
 実行するためのコマンドは以下のとおりです．
 
 ```bash
@@ -87,7 +108,7 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 
 ### 評価結果をW&Bで管理
 
-現在は行われていない．
+現在，評価結果は`.jsonl`で提供されるのみであり，W&Bとの連携はサポートする予定がありません．
 
 ## ライセンス
 
@@ -96,10 +117,8 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 
 ## Contribution
 
-- 問題や提案があれば，Issue で報告してください
-- 修正や追加があれば，Pull Requestを送ってください
-    - コードのフォーマッターの管理に [pre-commit](https://pre-commit.com)を使用しています
-        - `pre-commit run --all-files` を実行することでコードのフォーマットを自動で行い，修正が必要な箇所が表示されます．全ての項目を修正してからコミットしてください
+- 問題や提案があれば，Issue で報告してください．
+- 修正や追加があれば，Pull Requestを送ってください．
 
 - ライブラリの追加
 ```
