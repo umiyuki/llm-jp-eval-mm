@@ -62,9 +62,9 @@ class JaVLMBenchIntheWild(Task):
             { 'input_text', 'pred', 'qa_id','answer', 'score' }
         """
         rouge_score_list = []
-        from concurrent.futures import ThreadPoolExecutor
+        from concurrent.futures import ProcessPoolExecutor
 
-        with ThreadPoolExecutor() as executor:
+        with ProcessPoolExecutor() as executor:
             for doc, pred in tqdm(
                 zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
             ):
