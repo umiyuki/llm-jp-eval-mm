@@ -1,6 +1,7 @@
-from transformers import LlamaTokenizer, AutoModelForVision2Seq, BlipImageProcessor
-from PIL import Image
 import requests
+from PIL import Image
+from transformers import LlamaTokenizer, AutoModelForVision2Seq, BlipImageProcessor
+from typing import Union
 
 
 # helper function to format input prompts
@@ -31,9 +32,14 @@ class VLM:
             "novelai/nerdstash-tokenizer-v1", additional_special_tokens=["▁▁"]
         )
 
-    def generate(self, image, text: str, max_new_tokens: int = 256):
+    def generate(
+        self,
+        images: Union[Image.Image, list[Image.Image]],
+        text: str,
+        max_new_tokens: int = 256,
+    ):
         prompt = build_prompt(prompt=text)
-        inputs = self.processor(images=image, return_tensors="pt")
+        inputs = self.processor(images=images, return_tensors="pt")
         text_encoding = self.tokenizer(
             prompt, add_special_tokens=False, return_tensors="pt"
         )
@@ -61,3 +67,6 @@ if __name__ == "__main__":
     image_file = "https://images.unsplash.com/photo-1582538885592-e70a5d7ab3d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80"
     image = Image.open(requests.get(image_file, stream=True).raw).convert("RGB")
     print(model.generate(image, "これはなんですか?"))
+
+    multi_images = [image for _ in range(3)]
+    print(model.generate(multi_images, "What is the difference between these images?"))
