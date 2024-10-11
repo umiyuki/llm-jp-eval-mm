@@ -1,7 +1,6 @@
 import torch
 from PIL import Image
 import requests
-import torch
 from llava.constants import IMAGE_TOKEN_INDEX
 from llava.conversation import conv_templates
 from llava.mm_utils import (

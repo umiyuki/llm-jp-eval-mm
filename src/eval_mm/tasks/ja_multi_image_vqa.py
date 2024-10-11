@@ -88,7 +88,7 @@ class JAMultiImageVQA(Task):
                 "pred": pred["text"],
                 "qa_id": doc["question_id"],
                 "answer": doc["answer"],
-                "score": llm_as_a_judge_score["score"],
+                "score_llm_as_a_judge": llm_as_a_judge_score["score"],
             }
             eval_results.append(eval_result)
         return eval_results
@@ -111,7 +111,8 @@ class JAMultiImageVQA(Task):
 
         # average score for each category, and overall
         metrics = {
-            "score": sum([doc["score"] for doc in eval_results]) / len(eval_results),
+            "llm_as_a_judge": sum([doc["score_llm_as_a_judge"] for doc in eval_results])
+            / len(eval_results),
             "openai_model_id": model_id,
         }
 
@@ -146,7 +147,7 @@ class JAMultiImageVQA(Task):
             result = {
                 "question_id": pred["question_id"],
                 "text": pred["text"],
-                "score": eval_result["score"],
+                "score_llm_as_a_judge": eval_result["score_llm_as_a_judge"],
             }
             results.append(result)
         return results

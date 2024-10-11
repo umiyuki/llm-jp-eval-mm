@@ -93,8 +93,8 @@ class JaVLMBenchIntheWild(Task):
                 "pred": pred["text"],
                 "qa_id": doc["question_id"],
                 "answer": doc["answer"],
-                "rougeL": rouge_score["rougeL"],
-                "llm_as_a_judge": llm_as_a_judge_score["score"],
+                "score_rougeL": rouge_score["rougeL"],
+                "score_llm_as_a_judge": llm_as_a_judge_score["score"],
             }
             eval_results.append(eval_result)
 
@@ -117,8 +117,9 @@ class JaVLMBenchIntheWild(Task):
         eval_results = self.evaluate(docs, preds, batch_size, model_id)
 
         metrics = {
-            "rougeL": sum([doc["rougeL"] for doc in eval_results]) / len(eval_results),
-            "llm_as_a_judge": sum([doc["llm_as_a_judge"] for doc in eval_results])
+            "rougeL": sum([doc["score_rougeL"] for doc in eval_results])
+            / len(eval_results),
+            "llm_as_a_judge": sum([doc["score_llm_as_a_judge"] for doc in eval_results])
             / len(eval_results),
             "openai_model_id": model_id,
         }
@@ -154,8 +155,8 @@ class JaVLMBenchIntheWild(Task):
             result = {
                 "question_id": pred["question_id"],
                 "text": pred["text"],
-                "rougeL": eval_result["rougeL"],
-                "llm_as_a_judge": eval_result["llm_as_a_judge"],
+                "score_rougeL": eval_result["score_rougeL"],
+                "score_llm_as_a_judge": eval_result["score_llm_as_a_judge"],
             }
             results.append(result)
         return results
