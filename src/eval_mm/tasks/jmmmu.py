@@ -180,7 +180,7 @@ def jmmmu_aggregate_results(results):
         ),
         "acc": round(all_ins_acc, 5),
     }
-    return printable_results["Overall"]["acc"]
+    return printable_results
 
 
 ##################
@@ -615,7 +615,8 @@ class JMMMU(Task):
             }
             for doc, pred, result in zip(docs, preds, results)
         ]
-        metrics = {"jmmmu_acc": jmmmu_aggregate_results(results)}
+
+        metrics = {"jmmmu": jmmmu_aggregate_results(results)}
         return metrics, eval_results
 
     def format_result(self, preds: list[dict], eval_results: list[dict]) -> list[dict]:

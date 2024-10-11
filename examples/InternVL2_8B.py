@@ -135,6 +135,7 @@ class VLM:
         )
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
+        text = text.replace("<image>", "")
         if "<image>" not in text:
             if isinstance(image, list):
                 image_tokens = ["<image>"] * len(image)

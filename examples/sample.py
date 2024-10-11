@@ -14,6 +14,7 @@ parser.add_argument("--openai_model_id", type=str, default="gpt-4o-mini-2024-07-
 parser.add_argument("--batch_size_for_evaluation", type=int, default=10)
 parser.add_argument("--max_new_tokens", type=int, default=256)
 parser.add_argument("--overwrite", action="store_true")
+parser.add_argument("--result_dir", type=str, default="result")
 
 args = parser.parse_args()
 
@@ -28,7 +29,8 @@ task = eval_mm.api.registry.get_task(task_id)
 dataset = task.dataset
 
 # save the predictions to jsonl file
-result_dir = f"result/{task_id}"
+os.makedirs(args.result_dir, exist_ok=True)
+result_dir = f"{args.result_dir}/{task_id}/{model_id}"
 os.makedirs(result_dir, exist_ok=True)
 prediction_result_dir = os.path.join(result_dir, "prediction")
 os.makedirs(prediction_result_dir, exist_ok=True)
