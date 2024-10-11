@@ -1,11 +1,11 @@
 from datasets import Dataset, load_dataset
-from tqdm import tqdm
 import re
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.azure_client import OpenAIChatAPI, batch_iter
+from ..utils.azure_client import OpenAIChatAPI
 from ..utils.templates import qa_pointwise
+from ..utils.metrics import llm_as_a_judge
 
 
 @register_task("ja-multi-image-vqa")
@@ -54,7 +54,9 @@ class JAMultiImageVQA(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(self, docs: list, preds: list) -> list[dict]:
+    def evaluate(
+        self, docs: list, preds: list, batch_size, model_name: str
+    ) -> list[dict]:
         """Evaluate batch prediction.
         Args:
         doc : list of instance of the eval dataset
@@ -63,57 +65,35 @@ class JAMultiImageVQA(Task):
         eval_results: list of dictionary with keys:
             { 'input_text', 'pred', 'qa_id','answer', 'score' }
         Reference:
-        注：評価方法はGPT-4oによるスコアリング方法を採用しました。各設問ごとに5点満点で評価するようGPT-4oに指示を出し、平均点をモデルのスコアとしています。値が高いほど複数画像に対する日本語での質疑応答能力が高いと言えます。
+        注: 評価方法はGPT-4oによるスコアリング方法を採用しました。各設問ごとに5点満点で評価するようGPT-4oに指示を出し、平均点をモデルのスコアとしています。値が高いほど複数画像に対する日本語での質疑応答能力が高いと言えます。
         """
-        assert len(docs) == len(preds), "Length of docs and preds must be equal."
-        assert all(
-            [
-                doc["question_id"] == pred["question_id"]
-                for doc, pred in zip(docs, preds)
-            ]
-        ), "Question IDs must be the same."
-
-        def build_message(template, doc, pred):
-            content = template.format(
-                input_text=doc["input_text"],
-                pred=pred["text"],
-                answer=doc["answer"],
-            )
-            message = [{"role": "user", "content": content}]
-            return message
-
-        messages = [
-            build_message(qa_pointwise, doc, pred) for doc, pred in zip(docs, preds)
-        ]
-        completions = self.client.batch_generate_chat_response(
-            messages,
-            max_tokens=1024,
-            temperature=0.0,
+        input_texts = [doc["input_text"] for doc in docs]
+        answer_list = [doc["answer"] for doc in docs]
+        pred_list = [pred["text"] for pred in preds]
+        llm_as_a_judge_score_list = llm_as_a_judge(
+            self.client,
+            qa_pointwise,
+            input_texts,
+            answer_list,
+            pred_list,
+            batch_size,
+            model_name,
         )
-
-        def parse_score(completion):
-            # find Score: X
-            score = re.search(r"Score: (\d)", completion)
-            score = int(score.group(1)) if score else 1
-            if score not in [1, 2, 3, 4, 5]:
-                raise ValueError("Score Value Error.")
-
-            return {"score": score, "rationale": completion}
-
-        scores = [parse_score(completion) for completion in completions]
-
-        eval_results = [doc for doc in docs]
         eval_results = []
-        for doc, pred, score in zip(docs, preds, scores):
-            eval_result = doc
-            eval_result["pred"] = pred["text"]
-            eval_result["score"] = score["score"]
-            eval_result["rationale"] = score["rationale"]
+        for doc, pred, llm_as_a_judge_score in zip(
+            docs, preds, llm_as_a_judge_score_list
+        ):
+            eval_result = {
+                "input_text": doc["input_text"],
+                "pred": pred["text"],
+                "qa_id": doc["question_id"],
+                "answer": doc["answer"],
+                "score": llm_as_a_judge_score["score"],
+            }
             eval_results.append(eval_result)
-
         return eval_results
 
-    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=1):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=100):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path
@@ -127,13 +107,7 @@ class JAMultiImageVQA(Task):
         eval_results = []
         docs = self.dataset
 
-        with tqdm(total=len(preds), desc="Evaluation ...") as pbar:
-            for i, batch_idx in enumerate(batch_iter(range(len(preds)), batch_size)):
-                doc_batch = [docs[idx] for idx in batch_idx]
-                pred_batch = [preds[idx] for idx in batch_idx]
-                eval_results_batch = self.evaluate(doc_batch, pred_batch)
-                eval_results.extend(eval_results_batch)
-                pbar.update(len(batch_idx))
+        eval_results = self.evaluate(docs, preds, batch_size, model_id)
 
         # average score for each category, and overall
         metrics = {

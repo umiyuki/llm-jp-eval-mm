@@ -67,7 +67,7 @@ class JaVGVQA500(Task):
         processed["pred"] = pred
         return processed
 
-    def evaluate(self, docs, preds) -> dict:
+    def evaluate(self, docs, preds, batch_size, model_name) -> dict:
         """Evaluate batch prediction.
         Args:
         doc : list of instance of the eval dataset
@@ -77,16 +77,31 @@ class JaVGVQA500(Task):
             { 'input_text', 'pred', 'qa_id','answer', 'score' }
         """
         rouge_score_list = []
-        for doc, pred in tqdm(
-            zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
-        ):
-            rouge_score_list.append(rouge_ja([doc["answer"]], [pred["text"]]))
+        from concurrent.futures import ProcessPoolExecutor
 
+        with ProcessPoolExecutor() as executor:
+            futures = [
+                executor.submit(rouge_ja, [doc["answer"]], [pred["text"]])
+                for doc, pred in zip(docs, preds)
+            ]
+
+            # Using as_completed to track progress
+            for future in tqdm(futures, total=len(futures), desc="Evaluating ROUGE"):
+                rouge_score_list.append(future.result())
+        # for doc, pred in tqdm(
+        #     zip(docs, preds), total=len(docs), desc="Evaluating ROUGE"
+        # ):
         input_text_list = [doc["input_text"] for doc in docs]
         answer_list = [doc["answer"] for doc in docs]
         pred_list = [pred["text"] for pred in preds]
         llm_as_a_judge_score_list = llm_as_a_judge(
-            self.client, qa_pointwise, input_text_list, answer_list, pred_list
+            self.client,
+            qa_pointwise,
+            input_text_list,
+            answer_list,
+            pred_list,
+            batch_size,
+            model_name,
         )
         eval_results = []
         for doc, pred, rouge_score, llm_as_a_judge_score in zip(
@@ -118,7 +133,7 @@ class JaVGVQA500(Task):
         eval_results = []
         docs = self.dataset
 
-        eval_results = self.evaluate(docs, preds)
+        eval_results = self.evaluate(docs, preds, batch_size, model_id)
 
         metrics = {
             "rougeL": sum([doc["rougeL"] for doc in eval_results]) / len(eval_results),

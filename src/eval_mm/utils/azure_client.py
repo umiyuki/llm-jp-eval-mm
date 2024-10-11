@@ -31,7 +31,7 @@ def batch_iter(iterable: Iterable[T], batch_size: int) -> Iterator[list[T]]:
 async def _retry_on_error(
     openai_call: Callable[[], Awaitable[T]],
     max_num_trials: int = 5,
-    first_wait_time: int = 10,
+    first_wait_time: int = 1,
 ) -> Awaitable[T] | None:
     """
     API送信時にエラーが発生した場合にリトライするための関数です。
@@ -53,16 +53,9 @@ class OpenAIChatAPI:
     """
     Wrapper class of the OpenAI API client.
     You can use the `batch_generate_chat_response` method to send multiple chat requests in parallel.
-    Args:
-        model: The model name to use. (default: "gpt-4o-mini-2024-07-18")
     """
 
-    def __init__(
-        self,
-        model: str = "gpt-4o-mini-2024-07-18",
-    ) -> None:
-        self.model = model
-
+    def __init__(self) -> None:
         if os.getenv("AZURE_OPENAI_KEY") and os.getenv("AZURE_OPENAI_ENDPOINT"):
             self.client = AsyncAzureOpenAI(
                 api_key=os.getenv("AZURE_OPENAI_KEY"),
@@ -81,6 +74,7 @@ class OpenAIChatAPI:
         messages_list: list[list[dict[str, str]]],
         stop_sequences: str | list[str] | None = None,
         max_new_tokens: int | None = None,
+        model_name: str | None = None,
         **kwargs,
     ) -> list[str]:
         """Send multiple chat requests to the OpenAI in parallel."""
@@ -103,13 +97,12 @@ class OpenAIChatAPI:
                 )
                 raise ValueError(msg)
             kwargs["max_tokens"] = max_new_tokens
-
         tasks = [
             _retry_on_error(
                 # Define an anonymous function with a lambda expression and pass it,
                 # and call it inside the _retry_on_error function
                 openai_call=lambda x=ms: self.client.chat.completions.create(
-                    model=self.model,
+                    model=model_name,
                     messages=x,
                     **kwargs,
                 ),
@@ -121,11 +114,15 @@ class OpenAIChatAPI:
     def batch_generate_chat_response(
         self,
         chat_messages_list: list[list[dict[str, str]]],
+        model_name: str | None = None,
         **kwargs,
     ) -> list[str]:
         api_responses = asyncio.run(
-            self._async_batch_run_chatgpt(chat_messages_list, **kwargs),
+            self._async_batch_run_chatgpt(
+                chat_messages_list, model_name=model_name, **kwargs
+            )
         )
+
         model_outputs: list[str] = []
         for res in api_responses:
             model_output = res.choices[0].message.content
@@ -146,7 +143,9 @@ if __name__ == "__main__":
         [{"role": "system", "content": "こんにちは"}],
         [{"role": "user", "content": "今日の天気は？"}],
     ]
-    responses = client.batch_generate_chat_response(messages_list)
+    responses = client.batch_generate_chat_response(
+        messages_list, model_name="gpt-4o-mini-2024-07-18"
+    )
     print(responses)
     dataset = [messages_list[0] for _ in range(10)]
     # progress bar
@@ -155,6 +154,8 @@ if __name__ == "__main__":
     with tqdm(total=len(dataset)) as pbar:
         for i, items in tqdm(enumerate(batch_iter(dataset, batch_size=4))):
             print(items)
-            responses = client.batch_generate_chat_response(items)
+            responses = client.batch_generate_chat_response(
+                items, model_name="gpt-4o-mini-2024-07-18"
+            )
             print(responses)
             pbar.update(len(items))

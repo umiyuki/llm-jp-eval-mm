@@ -5,7 +5,9 @@ from rouge_score import rouge_scorer, scoring
 from fugashi import Tagger
 import emoji
 import unicodedata
+
 # import neologdn FIXME: fix c++12 error when installing neologdn
+from tqdm import tqdm
 
 
 class MecabTokenizer:
@@ -71,8 +73,8 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
 
 
-def llm_as_a_judge(client, template, questions, answers, preds):
-    """Evaluat
+def llm_as_a_judge(client, template, questions, answers, preds, batch_size, model_name):
+    """Evaluate
     Reference:
     注: 評価方法はGPT-4oによるスコアリング方法を採用しました。各設問ごとに5点満点で評価するようGPT-4oに指示を出し、平均点をモデルのスコアとしています。値が高いほど複数画像に対する日本語での質疑応答能力が高いと言えます。
     Return: { 'score': int, 'rationale': str }
@@ -92,11 +94,16 @@ def llm_as_a_judge(client, template, questions, answers, preds):
         for question, answer, pred in zip(questions, answers, preds)
     ]
 
-    completion = client.batch_generate_chat_response(
-        messages,
-        max_tokens=1024,
-        temperature=0.0,
-    )
+    messages_list = [
+        messages[i : i + batch_size] for i in range(0, len(messages), batch_size)
+    ]
+    completion = []
+    for ms in tqdm(messages_list, desc="Evaluating LLM as a Judge"):
+        completion.extend(
+            client.batch_generate_chat_response(
+                ms, max_tokens=1024, temperature=0.0, model_name=model_name
+            )
+        )
 
     def parse_score(completion):
         # find Score: X
@@ -152,5 +159,7 @@ if __name__ == "__main__":
             ["これは何色ですか？"],
             ["黒"],
             ["黒色です。"],
+            batch_size=1,
+            model_name="gpt-4o-mini-2024-07-18",
         )
     )
