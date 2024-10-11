@@ -136,9 +136,13 @@ class VLM:
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
         if "<image>" not in text:
-            prompt = "<image>\n" + text
-        prompt = text
-        if len(image) > 1:
+            if isinstance(image, list):
+                image_tokens = ["<image>"] * len(image)
+                image_tokens = " ".join(image_tokens)
+                text = f"{image_tokens}\n{text}"
+            else:
+                text = f"<image>\n{text}"
+        if isinstance(image, list):
             pixel_values_list = []
             for img in image:
                 pixel_values = (
@@ -147,17 +151,25 @@ class VLM:
                     .to(self.model.dtype)
                 )
                 pixel_values_list.append(pixel_values)
+            num_patches_list = [
+                pixel_values.size(0) for pixel_values in pixel_values_list
+            ]
             pixel_values = torch.cat(pixel_values_list, dim=0)
+
         else:
+            num_patches_list = None
             pixel_values = (
-                load_image(image[0], max_num=12)
-                .to(self.model.device)
-                .to(self.model.dtype)
+                load_image(image, max_num=12).to(self.model.device).to(self.model.dtype)
             )
+
         generation_config = dict(max_new_tokens=max_new_tokens, do_sample=False)
 
         response = self.model.chat(
-            self.tokenizer, pixel_values, prompt, generation_config
+            self.tokenizer,
+            pixel_values,
+            text,
+            generation_config,
+            num_patches_list=num_patches_list,
         )
         generated_text = response
         return generated_text
@@ -171,3 +183,6 @@ if __name__ == "__main__":
     image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
     image = Image.open(requests.get(image_file, stream=True).raw)
     print(model.generate(image, "What is in the image?"))
+    print(
+        model.generate([image, image], "What is the difference between these images?")
+    )

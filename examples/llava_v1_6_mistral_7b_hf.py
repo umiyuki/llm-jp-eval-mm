@@ -5,6 +5,9 @@ from transformers import LlavaNextForConditionalGeneration, LlavaNextProcessor
 from typing import Union
 
 
+DEFAULT_IMAGE_TOKEN = "<image>"
+
+
 class VLM:
     model_id: str = "llava-hf/llava-v1.6-mistral-7b-hf"
 
@@ -22,6 +25,8 @@ class VLM:
         text: str,
         max_new_tokens: int = 256,
     ):
+        if DEFAULT_IMAGE_TOKEN in text:
+            text = text.replace(DEFAULT_IMAGE_TOKEN, "")
         num_images = 1
         if isinstance(images, list):
             num_images = len(images)
@@ -36,6 +41,7 @@ class VLM:
         input_text = self.processor.apply_chat_template(
             messages, add_generation_prompt=True
         )
+        print(input_text)
 
         inputs = self.processor(images=images, text=input_text, return_tensors="pt").to(
             "cuda"
@@ -54,7 +60,7 @@ if __name__ == "__main__":
     model = VLM()
     image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
     image = Image.open(requests.get(image_file, stream=True).raw)
-    print(model.generate(image, "What is in the image?"))
+    print("first:", model.generate(image, "What is in the image?"))
 
     multi_images = [image for _ in range(3)]
     print(model.generate(multi_images, "What is the difference between these images?"))

@@ -34,7 +34,7 @@ class VLM:
         qs = text
         if "<image>" not in text:
             if isinstance(image, list):
-                qs = "<image>\n" * len(image)  + text
+                qs = "<image>\n" * len(image) + text
             else:
                 qs = "<image>\n" + text
         print(qs)
