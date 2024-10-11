@@ -1,6 +1,8 @@
+import requests
 import torch
-
-from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
+from PIL import Image
+from transformers import LlavaNextForConditionalGeneration, LlavaNextProcessor
+from typing import Union
 
 
 class VLM:
@@ -14,23 +16,29 @@ class VLM:
         self.processor = LlavaNextProcessor.from_pretrained(self.model_id)
         self.model.to(self.device)
 
-    def generate(self, image, text: str, max_new_tokens: int = 256):
-        conversation = [
+    def generate(
+        self,
+        images: Union[Image.Image, list[Image.Image]],
+        text: str,
+        max_new_tokens: int = 256,
+    ):
+        num_images = 1
+        if isinstance(images, list):
+            num_images = len(images)
+        content = [{"type": "image"} for _ in range(num_images)]
+        content.extend([{"type": "text", "text": text}])
+        messages = [
             {
                 "role": "user",
-                "content": [
-                    {"type": "text", "text": text},
-                    {"type": "image"},
-                ],
-            },
+                "content": content,
+            }
         ]
-
-        prompt = self.processor.apply_chat_template(
-            conversation, add_generation_prompt=True
+        input_text = self.processor.apply_chat_template(
+            messages, add_generation_prompt=True
         )
 
-        inputs = self.processor(images=image, text=prompt, return_tensors="pt").to(
-            "cuda:0"
+        inputs = self.processor(images=images, text=input_text, return_tensors="pt").to(
+            "cuda"
         )
 
         # autoregressively complete prompt
@@ -43,10 +51,10 @@ class VLM:
 
 
 if __name__ == "__main__":
-    import requests
-    from PIL import Image
-
     model = VLM()
     image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
     image = Image.open(requests.get(image_file, stream=True).raw)
     print(model.generate(image, "What is in the image?"))
+
+    multi_images = [image for _ in range(3)]
+    print(model.generate(multi_images, "What is the difference between these images?"))
