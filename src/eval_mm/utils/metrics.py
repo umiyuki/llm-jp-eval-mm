@@ -71,6 +71,47 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
 
 
+def llm_as_a_judge(client, template, questions, answers, preds):
+    """Evaluat
+    Reference:
+    注: 評価方法はGPT-4oによるスコアリング方法を採用しました。各設問ごとに5点満点で評価するようGPT-4oに指示を出し、平均点をモデルのスコアとしています。値が高いほど複数画像に対する日本語での質疑応答能力が高いと言えます。
+    Return: { 'score': int, 'rationale': str }
+    """
+
+    def build_message(template, question, answer, pred):
+        content = template.format(
+            input_text=question,
+            pred=pred,
+            answer=answer,
+        )
+        message = [{"role": "user", "content": content}]
+        return message
+
+    messages = [
+        build_message(template, question, answer, pred)
+        for question, answer, pred in zip(questions, answers, preds)
+    ]
+
+    completion = client.batch_generate_chat_response(
+        messages,
+        max_tokens=1024,
+        temperature=0.0,
+    )
+
+    def parse_score(completion):
+        # find Score: X
+        score = re.search(r"Score: (\d)", completion)
+        score = int(score.group(1)) if score else 1
+        if score not in [1, 2, 3, 4, 5]:
+            raise ValueError("Score Value Error.")
+
+        return {"score": score, "rationale": completion}
+
+    scores = [parse_score(completion) for completion in completion]
+
+    return scores
+
+
 def test_rouge_ja():
     import pytest
 
@@ -100,3 +141,16 @@ if __name__ == "__main__":
     print(rouge_ja(["白色"], ["サーフボードは白色です。"]))
 
     print(rouge_ja(["黒"], ["乗り物の先頭は黒色です。"]))
+
+    from azure_client import OpenAIChatAPI
+
+    client = OpenAIChatAPI()
+    print(
+        llm_as_a_judge(
+            client,
+            "質問: {input_text}\n予測: {pred}\n正解: {answer}\n",
+            ["これは何色ですか？"],
+            ["黒"],
+            ["黒色です。"],
+        )
+    )
