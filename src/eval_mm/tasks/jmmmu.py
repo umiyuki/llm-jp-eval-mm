@@ -589,7 +589,7 @@ class JMMMU(Task):
         """
         pass
 
-    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=1):
+    def compute_metrics(self, preds, model_id="gpt-4o-mini-2024-07-18", batch_size=10):
         """Process the results of the model.
         Args:
             jsonl_path: jsonl_path
