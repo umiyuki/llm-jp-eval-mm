@@ -30,7 +30,7 @@ dataset = task.dataset
 
 # save the predictions to jsonl file
 os.makedirs(args.result_dir, exist_ok=True)
-result_dir = f"{args.result_dir}/{task_id}/{model_id}"
+result_dir = f"{args.result_dir}/{task_id}"
 os.makedirs(result_dir, exist_ok=True)
 prediction_result_dir = os.path.join(result_dir, "prediction")
 os.makedirs(prediction_result_dir, exist_ok=True)
