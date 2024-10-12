@@ -51,13 +51,13 @@ else:
     model = module.VLM()
     preds = []
     for doc in tqdm(dataset):
-        print("doc", doc)
+        # print("doc", doc)
         image = task.doc_to_visual(doc)
         text = task.doc_to_text(doc)
         qid = task.doc_to_id(doc)
-        print("image", image)
-        print("text", text)
-        print("qid", qid)
+        # print("image", image)
+        # print("text", text)
+        # print("qid", qid)
 
         pred = {
             "question_id": qid,
