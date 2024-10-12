@@ -4,6 +4,8 @@ from PIL import Image
 from transformers import AutoProcessor, LlavaForConditionalGeneration
 from typing import Union
 
+DEFAULT_IMAGE_TOKEN = "<image>"
+
 
 class VLM:
     model_id: str = "llava-hf/llava-1.5-7b-hf"
@@ -24,6 +26,8 @@ class VLM:
         text: str,
         max_new_tokens: int = 256,
     ):
+        if DEFAULT_IMAGE_TOKEN in text:
+            text = text.replace(DEFAULT_IMAGE_TOKEN, "")
         num_images = 1
         if isinstance(images, list):
             num_images = len(images)

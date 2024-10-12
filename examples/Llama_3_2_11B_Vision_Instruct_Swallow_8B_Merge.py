@@ -22,6 +22,8 @@ class VLM:
         text: str,
         max_new_tokens: int = 256,
     ):
+        if "<image>" in text:
+            text = text.replace("<image>", "")
         num_images = 1
         if isinstance(images, list):
             num_images = len(images)

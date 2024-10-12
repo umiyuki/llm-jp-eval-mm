@@ -43,10 +43,12 @@ class VLM:
             "no_repeat_ngram_size": 3,
         }
         if isinstance(image, list):
-            text = "<image> " * len(image) + "\n" + text
+            if "<image>" not in text:
+                text = "<image> " * len(image) + "\n" + text
             images = image
         else:
-            text = "<image>\n" + text
+            if "<image>" not in text:
+                text = "<image>\n" + text
             images = [image]
         response, history = chat_mllava(
             text, images, self.model, self.processor, **generation_kwargs

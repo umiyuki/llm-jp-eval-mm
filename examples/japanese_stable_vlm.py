@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForVision2Seq, AutoImageProcessor
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import requests
 
 # helper function to format input prompts
@@ -34,6 +34,134 @@ def build_prompt(task="caption", input=None, sep="\n\n### "):
     return p
 
 
+def add_order_label(image, label, font_size=40):
+    # Create a drawing context
+    draw = ImageDraw.Draw(image)
+
+    # Define font for the label
+    # font_path = fm.findfont(fm.FontProperties(family=font_family))
+    # font_path = os.path.join(__file__, os.pardir, "arial.ttf")
+    # font = ImageFont.truetype(font_path, font_size)
+    font = ImageFont.load_default()
+
+    # Calculate text size and position
+    text_width = text_height = font_size
+    label_background_margin = 10
+    label_background_size = (
+        text_width + 2 * label_background_margin,
+        text_height + 2 * label_background_margin,
+    )
+
+    # Draw a solid white square for the label background
+    label_background_position = (0, 0)  # Top-left corner
+    draw.rectangle(
+        [
+            label_background_position,
+            (
+                label_background_position[0] + label_background_size[0],
+                label_background_position[1] + label_background_size[1],
+            ),
+        ],
+        fill="white",
+    )
+
+    # Add the label text in black over the white square
+    label_position = (label_background_margin, label_background_margin)
+    draw.text(label_position, label, font=font, fill="black")
+
+    return image
+
+
+def resize_image_height(image, fixed_size):
+    # Resize image, maintaining aspect ratio
+    width, height = image.size
+    new_size = int(width * fixed_size / height), fixed_size
+    return image.resize(new_size, Image.Resampling.LANCZOS)
+
+
+def concatenate_images_horizontal(image_list):
+    # Concatenate images horizontally
+    widths, heights = zip(*(i.size for i in image_list))
+    total_width = sum(widths)
+    max_height = max(heights)
+    assert all(height == max_height for height in heights)
+    new_im = Image.new("RGB", (total_width, max_height))
+    x_offset = 0
+    for im in image_list:
+        new_im.paste(im, (x_offset, 0))
+        x_offset += im.size[0]
+    return new_im
+
+
+def resize_image_width(image, fixed_size):
+    # Resize image, maintaining aspect ratio
+    width, height = image.size
+    new_size = fixed_size, int(height * fixed_size / width)
+    return image.resize(new_size, Image.Resampling.LANCZOS)
+
+
+def concatenate_images_vertical(image_list):
+    # Concatenate images horizontally
+    widths, heights = zip(*(i.size for i in image_list))
+    total_height = sum(heights)
+    max_width = max(widths)
+    assert all(width == max_width for width in widths)
+    new_im = Image.new("RGB", (max_width, total_height))
+    y_offset = 0
+    for im in image_list:
+        new_im.paste(im, (0, y_offset))
+        y_offset += im.size[1]
+    return new_im
+
+
+def process_images_horizontal(original_images, size):
+    images = []
+    for i, img in enumerate(original_images):
+        # Resize image
+        img_resized = resize_image_height(img, fixed_size=size)
+
+        # Add order label
+        img_labeled = add_order_label(img_resized, f"[{i+1}]")
+
+        # Append to list
+        images.append(img_labeled)
+
+    # Concatenate all images
+    return concatenate_images_horizontal(images)
+
+
+def process_images_vertical(original_images, size):
+    images = []
+    for i, img in enumerate(original_images):
+        # Resize image
+        img_resized = resize_image_width(img, fixed_size=size)
+
+        # Add order label
+        img_labeled = add_order_label(img_resized, f"[{i+1}]")
+
+        # Append to list
+        images.append(img_labeled)
+
+    # Concatenate all images
+    return concatenate_images_vertical(images)
+
+
+def process_images(images, size=1008):
+    concat_horizontal = process_images_horizontal(images, size)
+    concat_vertical = process_images_vertical(images, size)
+
+    hw, hh = concat_horizontal.size
+    vw, vh = concat_vertical.size
+
+    ha = hw / hh
+    va = vh / vw
+
+    if ha > va:
+        return concat_vertical
+    else:
+        return concat_horizontal
+
+
 class VLM:
     model_id = "stabilityai/japanese-stable-vlm"
 
@@ -47,9 +175,13 @@ class VLM:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
         self.model.to(self.device)
 
-    def generate(self, image, text: str, max_new_tokens: int = 256):
+    def generate(self, images, text: str, max_new_tokens: int = 256):
+        # instruct blip does not expect the <image> tag
+        text = text.replace("<image>", "")
         prompt = build_prompt(task="vqa", input=text)
-        inputs = self.processor(images=image, return_tensors="pt")
+        if isinstance(images, list):
+            images = [process_images(images)]
+        inputs = self.processor(images=images, return_tensors="pt", truncation=True)
         text_encoding = self.tokenizer(
             prompt, add_special_tokens=False, return_tensors="pt"
         )
@@ -70,3 +202,6 @@ if __name__ == "__main__":
     image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
     image = Image.open(requests.get(image_file, stream=True).raw)
     print(model.generate(image, "What is in the image?"))
+    multi_images = [image for _ in range(3)]
+    print(model.generate([image], "画像の違いはなんですか"))
+    print(model.generate(multi_images, "画像の違いはなんですか?"))

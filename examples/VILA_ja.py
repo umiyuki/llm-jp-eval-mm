@@ -32,9 +32,10 @@ class VLM:
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
         qs = text
+        qs = qs.replace("<image>", "")
         if "<image>" not in text:
             if isinstance(image, list):
-                qs = "<image>\n" * len(image)  + text
+                qs = "<image>\n" * len(image) + text
             else:
                 qs = "<image>\n" + text
         print(qs)

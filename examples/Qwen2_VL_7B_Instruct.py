@@ -20,6 +20,8 @@ class VLM:
         )
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
+        if "<image>" in text:
+            text = text.replace("<image>", "")
         message = []
         if isinstance(image, list):
             image_content = []

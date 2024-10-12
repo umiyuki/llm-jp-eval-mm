@@ -2,7 +2,6 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from transformers import LlamaTokenizer, AutoModelForVision2Seq, BlipImageProcessor
 from typing import Union
-import os
 
 
 # helper function to format input prompts
@@ -167,10 +166,11 @@ class VLM:
         text: str,
         max_new_tokens: int = 256,
     ):
+        text = text.replace("<image>", "")
         prompt = build_prompt(prompt=text)
         if isinstance(images, list):
             images = [process_images(images)]
-        inputs = self.processor(images=images, return_tensors="pt")
+        inputs = self.processor(images=images, return_tensors="pt", truncation=True)
         text_encoding = self.tokenizer(
             prompt, add_special_tokens=False, return_tensors="pt"
         )
@@ -200,4 +200,4 @@ if __name__ == "__main__":
     print(model.generate(image, "これはなんですか?"))
 
     multi_images = [image for _ in range(3)]
-    print(model.generate(multi_images, "画像の違いはなんですか"))
+    print(model.generate(multi_images, "画像の違いはなんですか?"))

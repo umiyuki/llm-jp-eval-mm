@@ -15,9 +15,16 @@ class VLM:
         self.processor = AutoProcessor.from_pretrained(self.model_id)
 
     def generate(self, image, text: str, max_new_tokens: int = 256):
-        prompt = """USER: <image>
-        {text}
-        ASSISTANT: """
+        prefix = None
+        if "<image>" in text:
+            prompt = "USER: " + text + "\nASSISTANT: "
+        else:
+            if isinstance(image, list):
+                num_images = len(image)
+                prefix = "<image> " * num_images
+            else:
+                prefix = "<image> "
+            prompt = "USER: " + prefix + text + "\nASSISTANT: "
 
         inputs = (
             self.processor(text=prompt, images=image, return_tensors="pt")
@@ -47,3 +54,8 @@ if __name__ == "__main__":
     image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
     image = Image.open(requests.get(image_file, stream=True).raw)
     print(model.generate(image, "What is in the image?"))
+    print(
+        model.generate(
+            [image, image], "What is the difference between these two images?"
+        )
+    )
