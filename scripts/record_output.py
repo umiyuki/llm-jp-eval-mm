@@ -11,8 +11,9 @@ import click
 
 @click.command()
 @click.option("--task_id", type=str, default="japanese-heron-bench")
-def main(task_id: str):
-    result_dir = f"result/{task_id}"
+@click.option("--result_dir", type=str, default="results/run_0")
+def main(task_id: str, result_dir: str):
+    result_dir = f"{result_dir}/{task_id}"
     files = glob.glob(os.path.join(result_dir, "prediction/*.jsonl"))
     print(files)
 
@@ -153,8 +154,9 @@ def main(task_id: str):
                         df = df._append(
                             {"question_id": data["question_id"]}, ignore_index=True
                         )
+
                     df.loc[df["question_id"] == data["question_id"], model_id] = (
-                        data["text"] + "\n" + "score: " + str(data["score"])
+                        data["text"] + "\n" + "score: " +  str(data["score_rougeL"]) + ", " + str(data["score_llm_as_a_judge"])
                     )
 
         dataset = load_dataset("SakanaAI/JA-VG-VQA-500", split="test")
@@ -195,7 +197,8 @@ def main(task_id: str):
                 model_id = "-".join(pathlib.Path(file).stem.split("-")[:-1])
                 line = f.readline()
                 data = json.loads(line)
-                df.loc[model_id, "rougeL"] = data["rougeL"]
+                for key, value in data.items():
+                    df.loc[model_id, key] = value
 
         print(df.head())
         df.to_excel(os.path.join(result_dir, "evaluation.xlsx"), index=True)
@@ -213,8 +216,9 @@ def main(task_id: str):
                         df = df._append(
                             {"question_id": data["question_id"]}, ignore_index=True
                         )
+
                     df.loc[df["question_id"] == data["question_id"], model_id] = (
-                        data["text"] + "\n" + "score: " + str(data["score"])
+                        data["text"] + "\n" + "score: " + str(data["score_rougeL"]) + ", " + str(data["score_llm_as_a_judge"])
                     )
 
         ds = load_dataset("SakanaAI/JA-VLM-Bench-In-the-Wild", split="test")
@@ -235,10 +239,11 @@ def main(task_id: str):
         df = pd.DataFrame()
         for file in files:
             with open(file, "r") as f:
-                model_id = "-".join(pathlib.Path(file).stem.split("-")[:-1])
+                model_id = pathlib.Path(file).stem
                 line = f.readline()
                 data = json.loads(line)
-                df.loc[model_id, "rougeL"] = data["rougeL"]
+                for key, value in data.items():
+                    df.loc[model_id, key] = value
 
         print(df.head())
         df.to_excel(os.path.join(result_dir, "evaluation.xlsx"), index=True)

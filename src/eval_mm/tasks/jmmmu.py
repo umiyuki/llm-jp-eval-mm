@@ -99,9 +99,7 @@ def jmmmu_doc_to_visual(doc):
             )
         )
     )
-    print("image_tokens", image_tokens)
     visual = [doc[image_token].convert("RGB") for image_token in image_tokens]
-    print("visual", visual)
     return visual
 
 
@@ -535,7 +533,6 @@ class JMMMU(Task):
         for domain, sub_cats in DOMAIN_CAT2SUB_CAT.items():
             for sub_cat in sub_cats:
                 categories.append(sub_cat)
-        print(categories)
         dataset = None
         for category in categories:
             if dataset is None:
@@ -559,7 +556,6 @@ class JMMMU(Task):
     def process_pred(self, doc, pred):
         processed = doc
         processed["pred"] = pred
-        print(processed)
         pred = pred["text"]
         if doc["question_type"] == "multiple-choice":
             index2ans, all_choices = get_multi_choice_info(
@@ -604,7 +600,6 @@ class JMMMU(Task):
         docs = self.dataset
 
         results = [self.process_pred(doc, pred) for doc, pred in zip(docs, preds)]
-        print(results)
         eval_results = [
             {
                 "input_text": doc["input_text"],
@@ -645,7 +640,6 @@ class JMMMU(Task):
         ), "Length of preds and eval_results must be equal."
         results = []
         for pred, eval_result in zip(preds, eval_results):
-            print(eval_result)
             result = {
                 "question_id": pred["question_id"],
                 "text": pred["text"],

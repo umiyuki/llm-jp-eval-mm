@@ -15,6 +15,7 @@ parser.add_argument("--batch_size_for_evaluation", type=int, default=10)
 parser.add_argument("--max_new_tokens", type=int, default=256)
 parser.add_argument("--overwrite", action="store_true")
 parser.add_argument("--result_dir", type=str, default="result")
+parser.add_argument("--inference_only", action="store_true")
 
 args = parser.parse_args()
 
@@ -69,6 +70,9 @@ else:
             f.write(json.dumps(pred, ensure_ascii=False) + "\n")
 
 
+if args.inference_only:
+    print("Inference only mode. Skip evaluation.")
+    exit()
 print("Evaluation start")
 # evaluate the predictions
 metrics, eval_results = task.compute_metrics(

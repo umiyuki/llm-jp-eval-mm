@@ -73,14 +73,14 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
 
 
-def llm_as_a_judge(client, template, questions, answers, preds, batch_size, model_name):
+def llm_as_a_judge(client, template, questions: list, answers: list, preds: list, batch_size: int, model_name: str):
     """Evaluate
     Reference:
     注: 評価方法はGPT-4oによるスコアリング方法を採用しました。各設問ごとに5点満点で評価するようGPT-4oに指示を出し、平均点をモデルのスコアとしています。値が高いほど複数画像に対する日本語での質疑応答能力が高いと言えます。
     Return: { 'score': int, 'rationale': str }
     """
 
-    def build_message(template, question, answer, pred):
+    def build_message(template, question: str, answer: str, pred: str):
         content = template.format(
             input_text=question,
             pred=pred,
@@ -105,14 +105,18 @@ def llm_as_a_judge(client, template, questions, answers, preds, batch_size, mode
             )
         )
 
-    def parse_score(completion):
+    def parse_score(completion: str):
         # find Score: X
-        score = re.search(r"Score: (\d)", completion)
-        score = int(score.group(1)) if score else 1
-        if score not in [1, 2, 3, 4, 5]:
-            raise ValueError("Score Value Error.")
-
-        return {"score": score, "rationale": completion}
+        try:
+            score = re.search(r"Score: (\d)", completion)
+            score = int(score.group(1)) if score else 1
+            if score not in [1, 2, 3, 4, 5]:
+                print(f"Invalid score: {score}")
+                return {"score": 1, "rationale": completion}
+            return {"score": score, "rationale": completion}
+        except:
+            print("parse_score error")
+            return {"score": 1, "rationale": completion}
 
     scores = [parse_score(completion) for completion in completion]
 
@@ -150,16 +154,17 @@ if __name__ == "__main__":
     print(rouge_ja(["黒"], ["乗り物の先頭は黒色です。"]))
 
     from azure_client import OpenAIChatAPI
+    from templates import qa_pointwise
 
     client = OpenAIChatAPI()
     print(
         llm_as_a_judge(
             client,
-            "質問: {input_text}\n予測: {pred}\n正解: {answer}\n",
-            ["人間とAIの関係性について答えてください。"],
-            ["黒"],
-            ["黒色です。"],
+            qa_pointwise,
+            "What is the future of the relation between AI and humans?",
+            ["Humans and AI will collaborate more closely in the future."],
+            ["Humans and AI will collaborate more closely in the future."],
             batch_size=1,
-            model_name="gpt-4o-mini-2024-07-18",
+            model_name="gpt-4o",
         )
     )
