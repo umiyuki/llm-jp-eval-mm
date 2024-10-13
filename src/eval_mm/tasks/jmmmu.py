@@ -1,3 +1,5 @@
+# Reference: https://github.com/EvolvingLMMs-Lab/lmms-eval/blob/main/lmms_eval/tasks/jmmmu/utils.py
+
 from datasets import Dataset, load_dataset, concatenate_datasets
 
 from ..api.registry import register_task
@@ -529,19 +531,44 @@ class JMMMU(Task):
 
     def prepare_dataset(self, config) -> Dataset:
         # データセットをロード
-        categories = []
-        for domain, sub_cats in DOMAIN_CAT2SUB_CAT.items():
-            for sub_cat in sub_cats:
-                categories.append(sub_cat)
+        SUBJECTS = [
+            "Accounting",
+            "Agriculture",
+            "Architecture_and_Engineering",
+            "Basic_Medical_Science",
+            "Biology",
+            "Chemistry",
+            "Clinical_Medicine",
+            "Computer_Science",
+            "Design",
+            "Diagnostics_and_Laboratory_Medicine",
+            "Economics",
+            "Electronics",
+            "Energy_and_Power",
+            "Finance",
+            "Japanese_Art",
+            "Japanese_Heritage",
+            "Japanese_History",
+            "Manage",
+            "Marketing",
+            "Materials",
+            "Math",
+            "Mechanical_Engineering",
+            "Music",
+            "Pharmacy",
+            "Physics",
+            "Psychology",
+            "Public_Health",
+            "World_History",
+        ]
         dataset = None
-        for category in categories:
+        for subject in SUBJECTS:
             if dataset is None:
-                dataset = load_dataset("JMMMU/JMMMU", category, split="test")
+                dataset = load_dataset("JMMMU/JMMMU", name=subject, split="test")
             else:
                 dataset = concatenate_datasets(
-                    [dataset, load_dataset("JMMMU/JMMMU", category, split="test")]
+                    [dataset, load_dataset("JMMMU/JMMMU", name=subject, split="test")]
                 )
-        # dataset = load_dataset("JMMMU/JMMMU", "Music", split="test")
         return dataset
 
     def doc_to_text(self, doc):

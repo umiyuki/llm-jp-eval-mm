@@ -73,7 +73,15 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
 
 
-def llm_as_a_judge(client, template, questions: list, answers: list, preds: list, batch_size: int, model_name: str):
+def llm_as_a_judge(
+    client,
+    template,
+    questions: list,
+    answers: list,
+    preds: list,
+    batch_size: int,
+    model_name: str,
+):
     """Evaluate
     Reference:
     注: 評価方法はGPT-4oによるスコアリング方法を採用しました。各設問ごとに5点満点で評価するようGPT-4oに指示を出し、平均点をモデルのスコアとしています。値が高いほど複数画像に対する日本語での質疑応答能力が高いと言えます。
