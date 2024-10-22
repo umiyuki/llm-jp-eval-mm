@@ -20,6 +20,7 @@
     - [サンプルコードの実行](#サンプルコードの実行)
     - [評価結果の確認](#評価結果の確認)
     - [評価結果をW\&Bで管理](#評価結果をwbで管理)
+  - [サポートするタスク](#サポートするタスク)
   - [ライセンス](#ライセンス)
   - [Contribution](#contribution)
 
@@ -109,6 +110,16 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 ### 評価結果をW&Bで管理
 
 現在，評価結果は`.jsonl`で提供されるのみであり，W&Bとの連携はサポートする予定がありません．
+
+## サポートするタスク
+
+現在，以下のベンチマークタスクをサポートしている
+
+- Japanese Heron Bench
+- JA-VG-VQA500
+- JA-VLM-Bench-In-the-Wild
+- JA-Multi-Image-VQA
+- JMMMU
 
 ## ライセンス
 
