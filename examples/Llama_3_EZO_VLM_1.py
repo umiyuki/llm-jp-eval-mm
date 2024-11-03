@@ -21,7 +21,7 @@ conv_templates["llama_3"] = conv_llama_3_elyza
 
 
 class VLM(BaseVLM):
-    model_id = "SakanaAI/Llama-3-EvoVLM-JP-v2"
+    model_id = "AXCXEPT/Llama-3-EZO-VLM-1"
 
     def __init__(self) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"

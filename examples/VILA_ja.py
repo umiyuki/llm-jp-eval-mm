@@ -1,6 +1,4 @@
 import torch
-from PIL import Image
-import requests
 from llava.constants import IMAGE_TOKEN_INDEX
 from llava.conversation import conv_templates
 from llava.mm_utils import (
@@ -9,17 +7,10 @@ from llava.mm_utils import (
     tokenizer_image_token,
 )
 from llava.model.builder import load_pretrained_model
+from base_vlm import BaseVLM
 
 
-def load_images(image_files):
-    out = []
-    for image_file in image_files:
-        image = Image.open(image_file).convert("RGB")
-        out.append(image)
-    return out
-
-
-class VLM:
+class VLM(BaseVLM):
     model_id = "llm-jp/VILA-ja"
 
     def __init__(self) -> None:
@@ -38,8 +29,6 @@ class VLM:
                 qs = "<image>\n" * len(image) + text
             else:
                 qs = "<image>\n" + text
-        print(qs)
-        print(image)
         conv_mode = "llmjp_v3"
         conv = conv_templates[conv_mode].copy()
         conv.append_message(conv.roles[0], qs)
@@ -77,8 +66,5 @@ class VLM:
 
 
 if __name__ == "__main__":
-    model = VLM()
-    image_file = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    image = Image.open(requests.get(image_file, stream=True).raw)
-    print(model.generate(image, "What is in the image?"))
-    print(model.generate([image, image], "What is in the image?"))
+    vlm = VLM()
+    vlm.test_vlm()
