@@ -34,7 +34,6 @@ path = "src/eval_mm/_version.py"
 
 [tool.hatch.build]
 exclude = [
-    "examples",
     "result",
     "scripts",
 ]
