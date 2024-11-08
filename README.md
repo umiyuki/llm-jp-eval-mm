@@ -4,10 +4,12 @@
 [ [**English**](./README_en.md) | 日本語 ]
 
 このツールは，複数のデータセットを横断して日本語マルチモーダル大規模言語モデルを自動評価するものです．
-以下の機能を提供します．
+このツールは以下の機能を提供します：
 
-- 既存の日本語評価データを利用し，マルチモーダルテキスト生成タスクの評価データセットに変換して提供
-- 推論結果を用いた大規模言語モデルの評価・メトリクス計算
+- 既存の日本語評価データを利用し，マルチモーダルテキスト生成タスクの評価データセットに変換して提供する．
+- ユーザが作成した推論結果を用いて，タスクごとに設定された評価メトリクスを計算する．
+
+![llm-jp-eval-mmが提供するもの](./assets/teaser.png)
 
 データフォーマットの詳細，サポートしているデータの一覧については，[DATASET.md](./DATASET.md)を参照ください．
 
@@ -19,12 +21,28 @@
   - [評価方法](#評価方法)
     - [サンプルコードの実行](#サンプルコードの実行)
     - [評価結果の確認](#評価結果の確認)
-    - [評価結果をW\&Bで管理](#評価結果をwbで管理)
+    - [リーダーボードの公開](#リーダーボードの公開)
   - [サポートするタスク](#サポートするタスク)
   - [ライセンス](#ライセンス)
   - [Contribution](#contribution)
 
 ## 環境構築
+
+このツールはPyPI経由で利用することができます．
+
+### PyPIでインストールする
+
+1. `pip`コマンドを用いて`eval_mm`を利用している仮想環境に含めることができます．
+
+```bash
+pip install eval_mm
+```
+
+2. 本ツールではLLM-as-a-judge手法を用いて評価をする際に，OpenAI APIを用いてGPT-4oにリクエストを送信します．`.env`ファイルを作成し，Azureを利用する場合には`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`の組を，OpenAI APIを利用する場合は`OPENAI_API_KEY`を設定してください.
+
+以上で環境構築は終了です.
+
+リポジトリをクローンして利用する場合は以下の手順を参考にしてください．
 
 ### GitHubをCloneする場合
 
@@ -45,21 +63,10 @@ cd llm-jp-eval-mm
 rye sync
 ```
 
-3. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください.
+3. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`の組，あるいは`OPENAI_API_KEY`を設定してください.
 
 以上で環境構築は終了です.
 
-### PyPIでインストールする
-
-1. PyPIにリリースされているeval-mmを利用する場合，`pip`コマンドを用いて仮想環境に含めることができます．
-
-```bash
-pip install eval_mm
-```
-
-2. [.env.sample](./.env.sample)を参考にして, `.env`ファイルを作成し，`AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`を設定してください.
-
-以上で環境構築は終了です.
 
 ## 評価方法
 
@@ -89,13 +96,18 @@ rye run bash examples/evaluate.sh
 その場合は以下のコマンドを実行してください．
 
 ```bash
-rye run python3 examples/sample.py --class_path llava_1_5  --task_id japanese-heron-bench --openai_model_id gpt-4o-mini-2024-07-18
+rye run python3 examples/sample.py \
+--class_path llava_1_5 \
+--task_id japanese-heron-bench \
+--openai_model_id gpt-4o-mini-2024-07-18
 ```
 
 ### 評価結果の確認
 
 評価結果のスコアと出力結果は
 `result/{task_id}/evaluation/{model_id}.jsonl`, `result/{task_id}/prediction/{model_id}.jsonl` に保存されます.
+
+一部タスクでは評価結果の可視化を行うためのスクリプトが提供されています．
 
 japanese-heron-benchベンチマークについての結果の確認については,
 ```python
@@ -107,13 +119,13 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 - 各モデルのスコア分布を示すグラフ画像
 が生成されます.
 
-### 評価結果をW&Bで管理
+### リーダーボードの公開
 
-現在，評価結果は`.jsonl`で提供されるのみであり，W&Bとの連携はサポートする予定がありません．
+現在，代表的なモデルの評価結果をまとめたリーダーボードを公開する予定があります．
 
 ## サポートするタスク
 
-現在，以下のベンチマークタスクをサポートしている
+現在，以下のベンチマークタスクをサポートしています．
 
 - Japanese Heron Bench
 - JA-VG-VQA500
@@ -123,7 +135,6 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 
 ## ライセンス
 
-本ツールは [TODO: 必要なライセンス] の元に配布します．
 各評価データセットのライセンスは[DATASET.md](./DATASET.md)を参照してください．
 
 ## Contribution
