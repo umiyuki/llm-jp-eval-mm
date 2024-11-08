@@ -9,7 +9,7 @@
 - 既存の日本語評価データを利用し，マルチモーダルテキスト生成タスクの評価データセットに変換して提供する．
 - ユーザが作成した推論結果を用いて，タスクごとに設定された評価メトリクスを計算する．
 
-![llm-jp-eval-mmが提供するもの](./assets/teaser.png)
+![llm-jp-eval-mmが提供するもの](https://github.com/llm-jp/llm-jp-eval-mm/blob/master/assets/teaser.png)
 
 データフォーマットの詳細，サポートしているデータの一覧については，[DATASET.md](./DATASET.md)を参照ください．
 
@@ -71,6 +71,8 @@ rye sync
 ## 評価方法
 
 ### 評価の実行
+
+(現在, llm-jp-eval-mm リポジトリはprivateになっています. examples ディレクトリについては, [https://pypi.org/project/eval-mm/#files](https://pypi.org/project/eval-mm/#files)のSource Distributionにてdownloadできます.)
 
 評価の実行のために，サンプルコード`examples/sample.py`を提供しています．
 
