@@ -100,10 +100,12 @@ rye run bash examples/evaluate.sh
 その場合は以下のコマンドを実行してください．
 
 ```bash
-rye run python3 examples/sample.py \
---class_path llava_1_5_7b_hf \
---task_id japanese-heron-bench \
---judge_model gpt-4o-mini-2024-07-18
+python3 examples/sample.py \
+  --class_path llava_1_5_7b_hf \
+  --task_id japanese-heron-bench  \
+  --result_dir test  \
+  --metrics "llm_as_a_judge_heron_bench,exact_match,rougel" \
+  --overwrite
 ```
 
 ### 評価結果の確認
