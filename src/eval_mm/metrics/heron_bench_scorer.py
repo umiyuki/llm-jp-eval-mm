@@ -94,13 +94,16 @@ def build_content(context, input_text, ref_answer, pred_answer, role, prompt):
 
 class HeronBenchScorer:
     @staticmethod
-    def score(docs, pred_texts: list[str], client, judge_model) -> list[dict[str, int]]:
+    def score(refs, preds: list[str], **kwargs) -> list[dict[str, int]]:
+        docs = kwargs["docs"]
+        client = kwargs["client"]
+        judge_model = kwargs["judge_model"]
         contents = []
-        for doc, pred in zip(docs, pred_texts):
+        for doc, pred in zip(docs, preds):
             content = build_content(
                 doc["context"],
                 doc["input_text"],
-                doc["answer"]["gpt-4-0125-preview"],
+                refs,
                 pred,
                 "Assistant",
                 RULES[doc["category"]]["prompt"],
@@ -112,7 +115,8 @@ class HeronBenchScorer:
         return scores
 
     @staticmethod
-    def aggregate(docs, scores: list[dict[str, int]]) -> dict[str, float]:
+    def aggregate(scores: list[dict[str, int]], **kwargs) -> dict[str, float]:
+        docs = kwargs["docs"]
         category_list = ["conv", "detail", "complex"]
         heron_metrics = defaultdict(float)
         for category in category_list:

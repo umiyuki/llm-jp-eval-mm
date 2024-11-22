@@ -105,6 +105,7 @@ python3 examples/sample.py \
   --task_id japanese-heron-bench  \
   --result_dir test  \
   --metrics "llm_as_a_judge_heron_bench,exact_match,rougel" \
+  --judge_model "gpt-4o-2024-05-13" \
   --overwrite
 ```
 

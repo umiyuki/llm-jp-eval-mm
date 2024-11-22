@@ -3,9 +3,9 @@ class Scorer:
         pass
 
     @staticmethod
-    def score(refs: list[str], preds: list[str]) -> list[int]:
+    def score(refs: list[str], preds: list[str], **kwargs) -> list:
         raise NotImplementedError
 
     @staticmethod
-    def aggregate(scores: list) -> float:
+    def aggregate(scores: list, **kwargs) -> object:
         raise NotImplementedError

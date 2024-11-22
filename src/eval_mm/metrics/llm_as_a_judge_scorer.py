@@ -46,13 +46,16 @@ STEP 2: Provide overall score based on the rubric in the format of `Score: X` wh
 class LlmAsaJudgeScorer(Scorer):
     @staticmethod
     def score(
-        client,
-        questions: list,
-        answers: list,
-        preds: list,
-        batch_size: int,
-        model_name: str,
+        refs,
+        preds,
+        **kwargs,
     ):
+        client = kwargs["client"]
+        model_name = kwargs["judge_model"]
+        batch_size = kwargs["batch_size"]
+        docs = kwargs["docs"]
+        questions = docs["input_text"]
+
         template = QA_POINTWISE
 
         def build_message(template, question: str, answer: str, pred: str):
@@ -62,7 +65,7 @@ class LlmAsaJudgeScorer(Scorer):
 
         messages = [
             build_message(template, question, answer, pred)
-            for question, answer, pred in zip(questions, answers, preds)
+            for question, answer, pred in zip(questions, refs, preds)
         ]
         messages_list = [
             messages[i : i + batch_size] for i in range(0, len(messages), batch_size)
@@ -81,17 +84,17 @@ class LlmAsaJudgeScorer(Scorer):
                 score = int(score.group(1)) if score else 1
                 if score not in [1, 2, 3, 4, 5]:
                     print(f"Invalid score: {score}")
-                    return {"score": 1}
-                return {"score": score}
+                    return 1
+                return score
             except Exception:
                 print("parse_score error")
-                return {"score": 1}
+                return 1
 
         scores = [parse_score(completion) for completion in completion]
         return scores
 
-    def aggregate(scores: list) -> float:
-        return sum([score["score"] for score in scores]) / len(scores)
+    def aggregate(scores: list, **kwargs) -> float:
+        return sum([score for score in scores]) / len(scores)
 
 
 def test_llm_as_a_judge_scorer():
