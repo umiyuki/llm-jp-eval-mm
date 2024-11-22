@@ -7,11 +7,13 @@ from ..utils.azure_client import OpenAIChatAPI
 from ..utils.templates import qa_pointwise
 from ..utils.metrics import llm_as_a_judge
 
+# import neologdn FIXME: fix c++12 error when installing neologdn
+
 
 @register_task("ja-multi-image-vqa")
 class JAMultiImageVQA(Task):
-    def __init__(self, config=None) -> None:
-        super().__init__(config)
+    def __init__(self) -> None:
+        super().__init__()
         self.client = OpenAIChatAPI()
 
     @property
@@ -48,11 +50,6 @@ class JAMultiImageVQA(Task):
 
     def doc_to_id(self, doc):
         return doc["question_id"]
-
-    def process_pred(self, doc, pred):
-        processed = doc
-        processed["pred"] = pred
-        return processed
 
     def evaluate(
         self, docs: list, preds: list, batch_size, model_name: str

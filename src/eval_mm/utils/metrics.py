@@ -73,6 +73,107 @@ def rouge_ja(refs: list[str], preds: list[str]) -> dict:
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
 
 
+class Scorer:
+    def __init__(self) -> None:
+        pass
+
+    @staticmethod
+    def score(refs: list[str], preds: list[str]) -> list[int]:
+        raise NotImplementedError
+
+    @staticmethod
+    def aggregate(scores: list) -> float:
+        raise NotImplementedError
+
+
+class ExactMatchScorer(Scorer):
+    @staticmethod
+    def score(refs: list[str], preds: list[str]) -> list[int]:
+        scores = [int(ref == pred) for ref, pred in zip(refs, preds)]
+        return scores
+
+    @staticmethod
+    def aggregate(scores: list[int]) -> float:
+        return sum(scores) / len(scores)
+
+
+class SubstringMatchScorer(Scorer):
+    @staticmethod
+    def score(refs: list[str], preds: list[str]) -> list[int]:
+        scores = [int(ref in pred) for ref, pred in zip(refs, preds)]
+        return scores
+
+    @staticmethod
+    def aggregate(scores: list[int]) -> float:
+        return sum(scores) / len(scores)
+
+
+class LlmAsaJudgeScorer(Scorer):
+    @staticmethod
+    def score(
+        client,
+        questions: list,
+        answers: list,
+        preds: list,
+        batch_size: int,
+        model_name: str,
+    ):
+        from .templates import qa_pointwise
+
+        template = qa_pointwise
+
+        def build_message(template, question: str, answer: str, pred: str):
+            content = template.format(input_text=question, pred=pred, answer=answer)
+            message = [{"role": "user", "content": content}]
+            return message
+
+        messages = [
+            build_message(template, question, answer, pred)
+            for question, answer, pred in zip(questions, answers, preds)
+        ]
+        messages_list = [
+            messages[i : i + batch_size] for i in range(0, len(messages), batch_size)
+        ]
+        completion = []
+        for ms in tqdm(messages_list, desc="Evaluating LLM as a Judge"):
+            completion.extend(
+                client.batch_generate_chat_response(
+                    ms, max_tokens=1024, temperature=0.0, seed=0, model_name=model_name
+                )
+            )
+
+        def parse_score(completion: str):
+            try:
+                score = re.search(r"Score: (\d)", completion)
+                score = int(score.group(1)) if score else 1
+                if score not in [1, 2, 3, 4, 5]:
+                    print(f"Invalid score: {score}")
+                    return {"score": 1}
+                return {"score": score}
+            except Exception:
+                print("parse_score error")
+                return {"score": 1}
+
+        scores = [parse_score(completion) for completion in completion]
+        return scores
+
+    def aggregate(scores: list) -> float:
+        return sum([score["score"] for score in scores]) / len(scores)
+
+
+class RougeLScorer(Scorer):
+    @staticmethod
+    def score(refs: list[str], preds: list[str]) -> list[dict]:
+        scores = []
+        for ref, pred in zip(refs, preds):
+            scores.append(rouge_ja([ref], [pred])["rougeL"])
+        return scores
+
+    @staticmethod
+    def aggregate(scores: list[dict]) -> float:
+        return sum(scores) / len(scores)
+
+
 def llm_as_a_judge(
     client,
     template,
@@ -122,7 +223,7 @@ def llm_as_a_judge(
                 print(f"Invalid score: {score}")
                 return {"score": 1, "rationale": completion}
             return {"score": score, "rationale": completion}
-        except:
+        except Exception:
             print("parse_score error")
             return {"score": 1, "rationale": completion}
 
@@ -160,6 +261,24 @@ if __name__ == "__main__":
     print(rouge_ja(["白色"], ["サーフボードは白色です。"]))
 
     print(rouge_ja(["黒"], ["乗り物の先頭は黒色です。"]))
+
+    print(
+        rouge_ja(
+            ["映像に写っている少年は、ペンで羽を切り出しています。"],
+            [
+                "映像に写っている少年は、机に置かれた青色の鳥の羽のうちの一つを小型ナイフで加工しています。机の左側には竹の棒、赤いワイヤー、2本の鉛筆が置かれており、右側には数冊の本といくつかの書類が配置されています。"
+            ],
+        )
+    )
+
+    print(
+        RougeLScorer.score(
+            ["映像に写っている少年は、ペンで羽を切り出しています。"],
+            [
+                "映像に写っている少年は、机に置かれた青色の鳥の羽のうちの一つを小型ナイフで加工しています。机の左側には竹の棒、赤いワイヤー、2本の鉛筆が置かれており、右側には数冊の本といくつかの書類が配置されています。"
+            ],
+        )
+    )
 
     from azure_client import OpenAIChatAPI
     from templates import qa_pointwise

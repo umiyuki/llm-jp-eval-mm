@@ -510,8 +510,8 @@ def get_multi_choice_info(options):
 
 @register_task("jmmmu")
 class JMMMU(Task):
-    def __init__(self, config=None) -> None:
-        super().__init__(config)
+    def __init__(self) -> None:
+        super().__init__()
 
     @property
     def dataset(self):
@@ -580,7 +580,8 @@ class JMMMU(Task):
     def doc_to_id(self, doc):
         return doc["question_id"]
 
-    def process_pred(self, doc, pred):
+    @staticmethod
+    def _process_pred(doc, pred):
         processed = doc
         processed["pred"] = pred
         pred = pred["text"]
@@ -626,7 +627,7 @@ class JMMMU(Task):
         eval_results = []
         docs = self.dataset
 
-        results = [self.process_pred(doc, pred) for doc, pred in zip(docs, preds)]
+        results = [self._process_pred(doc, pred) for doc, pred in zip(docs, preds)]
         eval_results = [
             {
                 "input_text": doc["input_text"],

@@ -18,10 +18,9 @@ def register_task(name):
     return decorate
 
 
-def get_task(task_name):
+def get_task_cls(task_name):
     try:
         task_cls = TASK_REGISTRY[task_name]
-        task = task_cls()
-        return task
+        return task_cls
     except KeyError:
         raise KeyError(f"Missing task {task_name}")

@@ -10,8 +10,8 @@ from ..utils.templates import qa_pointwise
 
 @register_task("ja-vg-vqa-500")
 class JaVGVQA500(Task):
-    def __init__(self, config=None) -> None:
-        super().__init__(config)
+    def __init__(self) -> None:
+        super().__init__()
         self.client = OpenAIChatAPI()
 
     @property
@@ -61,11 +61,6 @@ class JaVGVQA500(Task):
 
     def doc_to_id(self, doc):
         return doc["question_id"]
-
-    def process_pred(self, doc, pred):
-        processed = doc
-        processed["pred"] = pred
-        return processed
 
     def evaluate(self, docs, preds, batch_size, model_name) -> dict:
         """Evaluate batch prediction.

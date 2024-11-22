@@ -18,8 +18,10 @@
 - [LLM-jp-eval-mm](#llm-jp-eval-mm)
   - [目次](#目次)
   - [環境構築](#環境構築)
+    - [PyPIでインストールする](#pypiでインストールする)
+    - [GitHubをCloneする場合](#githubをcloneする場合)
   - [評価方法](#評価方法)
-    - [サンプルコードの実行](#サンプルコードの実行)
+    - [評価の実行](#評価の実行)
     - [評価結果の確認](#評価結果の確認)
     - [リーダーボードの公開](#リーダーボードの公開)
   - [サポートするタスク](#サポートするタスク)
@@ -99,9 +101,9 @@ rye run bash examples/evaluate.sh
 
 ```bash
 rye run python3 examples/sample.py \
---class_path llava_1_5 \
+--class_path llava_1_5_7b_hf \
 --task_id japanese-heron-bench \
---openai_model_id gpt-4o-mini-2024-07-18
+--judge_model gpt-4o-mini-2024-07-18
 ```
 
 ### 評価結果の確認
