@@ -99,11 +99,11 @@ class HeronBenchScorer:
         client = kwargs["client"]
         judge_model = kwargs["judge_model"]
         contents = []
-        for doc, pred in zip(docs, preds):
+        for doc, ref, pred in zip(docs, refs, preds):
             content = build_content(
                 doc["context"],
                 doc["input_text"],
-                refs,
+                ref,
                 pred,
                 "Assistant",
                 RULES[doc["category"]]["prompt"],
@@ -162,11 +162,32 @@ def test_heron_bench_scorer():
     pred_texts = ["This is a test."]
     client = OpenAIChatAPI()
     judge_model = "gpt-4o-mini-2024-07-18"
+    refs = [doc["answer"]["gpt-4-0125-preview"] for doc in docs]
     scores = HeronBenchScorer.score(
-        docs, pred_texts, docs=docs, client=client, judge_model=judge_model
+        refs, pred_texts, docs=docs, client=client, judge_model=judge_model
     )
     assert len(scores) == 1
     print(scores)
     calculated_metric = HeronBenchScorer.aggregate(scores, docs=docs)
     assert "overall" in calculated_metric
     print(calculated_metric)
+
+
+if __name__ == "__main__":
+    from datasets import load_dataset
+
+    ds = load_dataset("Silviase/Japanese-Heron-Bench", split="train")
+    ds = ds.rename_column("text", "input_text")
+    # the 102th problem
+    ds = ds.select(range(100, 102))
+    pred_texts = [
+        "画像から判断すると、制限速度は50 km/hのようです。道路標識に「50」と表示されています。",
+        "画像に写っている標識によると、現在地からニセコまでは12kmです。",
+    ]
+    refs = [doc["answer"]["gpt-4-0125-preview"] for doc in ds]
+    client = OpenAIChatAPI()
+    judge_model = "gpt-4o-2024-05-13"
+    scores = HeronBenchScorer.score(
+        refs, pred_texts, docs=ds, client=client, judge_model=judge_model
+    )
+    print(scores)
