@@ -32,16 +32,20 @@ class JaVGVQA500(Task):
 
         return ds
 
-    def doc_to_text(self, doc):
+    @staticmethod
+    def doc_to_text(doc):
         return doc["input_text"]
 
-    def doc_to_visual(self, doc):
+    @staticmethod
+    def doc_to_visual(doc):
         return doc["image"]
 
-    def doc_to_id(self, doc):
+    @staticmethod
+    def doc_to_id(doc):
         return doc["question_id"]
 
-    def doc_to_answer(self, doc):
+    @staticmethod
+    def doc_to_answer(doc):
         return doc["answer"]
 
     def calc_scores(self, preds: list, metric: str) -> list:

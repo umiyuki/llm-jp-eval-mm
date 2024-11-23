@@ -17,19 +17,23 @@ class JAMultiImageVQA(Task):
         ds = ds.map(lambda example, idx: {"question_id": idx}, with_indices=True)
         return ds
 
-    def doc_to_text(self, doc):
+    @staticmethod
+    def doc_to_text(doc):
         # delete redundant image tags
         text = re.sub(r"<image> ", "", doc["input_text"])
         return text
 
-    def doc_to_visual(self, doc):
+    @staticmethod
+    def doc_to_visual(doc):
         print("CAUTION: This task provides MULTIPLE images.")
         return doc["images"]
 
-    def doc_to_id(self, doc):
+    @staticmethod
+    def doc_to_id(doc):
         return doc["question_id"]
 
-    def doc_to_answer(self, doc):
+    @staticmethod
+    def doc_to_answer(doc):
         return doc["answer"]
 
     def calc_scores(self, preds: list, metric: str) -> list:
