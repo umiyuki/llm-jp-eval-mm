@@ -28,7 +28,12 @@ parser.add_argument(
     default=None,
     help="max data size for evaluation. If None, use all data. Else, use the first n data.",
 )
-parser.add_argument("--metrics", type=str, default="llm_as_a_judge_heron_bench")
+parser.add_argument(
+    "--metrics",
+    type=str,
+    default="llm_as_a_judge_heron_bench",
+    help="metrics to evaluate. You can specify multiple metrics separated by comma (e.g. --metrics exact_match,rougel).",
+)
 
 args = parser.parse_args()
 
@@ -47,9 +52,12 @@ task_id = args.task_id
 module = importlib.import_module(class_path)
 model_id = module.VLM.model_id.replace("/", "-")
 
-task = eval_mm.api.registry.get_task_cls(task_id)(
-    max_dataset_len=args.max_dataset_len, judge_model=args.judge_model
+task_config = eval_mm.api.task.TaskConfig(
+    max_dataset_len=args.max_dataset_len,
+    judge_model=args.judge_model,
+    batch_size_for_evaluation=args.batch_size_for_evaluation,
 )
+task = eval_mm.api.registry.get_task_cls(task_id)(task_config)
 
 # save the predictions to jsonl file
 os.makedirs(args.result_dir, exist_ok=True)

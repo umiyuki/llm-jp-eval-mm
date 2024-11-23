@@ -166,13 +166,16 @@ class VLM(BaseVLM):
             pixel_values = (
                 load_image(image, max_num=12).to(self.model.device).to(self.model.dtype)
             )
+        import copy
+        generation_config = copy.deepcopy(gen_kwargs.__dict__)
+        generation_config.pop("use_cache")
 
         response = self.model.chat(
             self.tokenizer,
             pixel_values,
             text,
             num_patches_list=num_patches_list,
-            generation_config=gen_kwargs.__dict__,
+            generation_config=generation_config,
         )
         generated_text = response
         return generated_text

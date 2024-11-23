@@ -162,13 +162,11 @@ def test_heron_bench_scorer():
     pred_texts = ["This is a test."]
     client = OpenAIChatAPI()
     judge_model = "gpt-4o-mini-2024-07-18"
-    scores = HeronBenchScorer.score(docs, pred_texts, client, judge_model)
+    scores = HeronBenchScorer.score(
+        docs, pred_texts, docs=docs, client=client, judge_model=judge_model
+    )
     assert len(scores) == 1
     print(scores)
-    calculated_metric = HeronBenchScorer.aggregate(docs, scores)
+    calculated_metric = HeronBenchScorer.aggregate(scores, docs=docs)
     assert "overall" in calculated_metric
     print(calculated_metric)
-
-
-if __name__ == "__main__":
-    test_heron_bench_scorer()

@@ -25,6 +25,7 @@
     - [評価結果の確認](#評価結果の確認)
     - [リーダーボードの公開](#リーダーボードの公開)
   - [サポートするタスク](#サポートするタスク)
+  - [各VLMモデル推論時の必要ライブラリ情報](#各vlmモデル推論時の必要ライブラリ情報)
   - [ライセンス](#ライセンス)
   - [Contribution](#contribution)
 
@@ -139,6 +140,30 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 - JA-VLM-Bench-In-the-Wild
 - JA-Multi-Image-VQA
 - JMMMU
+
+## 各VLMモデル推論時の必要ライブラリ情報
+
+- OpenGVLab/InternVL2-8B
+
+OOM防止のためFlashAttentionのInstallが必要です.
+```bash
+uv pip install flash-attn --no-build-isolation --python .venv
+```
+
+- Llama_3_EvoVLM_JP_v2
+
+mantis-vl のインストールが必要です.
+```bash
+rye add "datasets==2.18.0"
+rye add --dev mantis-vl --git=https://github.com/TIGER-AI-Lab/Mantis.git
+```
+
+- Qwen/Qwen2-VL-7B-Instruct
+
+qwen-vl-utils のインストールが必要です.
+```bash
+rye add --dev qwen-vl-utils
+```
 
 ## ライセンス
 

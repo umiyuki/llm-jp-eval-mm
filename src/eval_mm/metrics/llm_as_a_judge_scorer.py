@@ -107,24 +107,13 @@ def test_llm_as_a_judge_scorer():
     batch_size = 1
     model_name = "gpt-4o-mini-2024-07-18"
     scores = LlmAsaJudgeScorer.score(
-        client, questions, answers, preds, batch_size, model_name
+        answers,
+        preds,
+        docs={"input_text": questions},
+        client=client,
+        judge_model=model_name,
+        batch_size=batch_size,
     )
-    assert scores == [{"score": 5}, {"score": 5}]
+    assert scores == [5, 5]
     scores = LlmAsaJudgeScorer.aggregate(scores)
     assert scores == 5.0
-
-
-if __name__ == "__main__":
-    from eval_mm.utils.azure_client import OpenAIChatAPI
-
-    client = OpenAIChatAPI()
-    questions = ["What is the capital of Japan?", "What is the capital of France?"]
-    answers = ["Tokyo", "Paris"]
-    preds = ["Tokyo", "Paris"]
-    batch_size = 1
-    model_name = "gpt-4o-mini-2024-07-18"
-    scores = LlmAsaJudgeScorer.score(
-        client, questions, answers, preds, batch_size, model_name
-    )
-    print(scores)
-    print(LlmAsaJudgeScorer.aggregate(scores))

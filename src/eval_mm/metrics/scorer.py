@@ -1,11 +1,14 @@
-class Scorer:
+from abc import ABC, abstractmethod
+
+
+class Scorer(ABC):
     def __init__(self) -> None:
         pass
 
-    @staticmethod
+    @abstractmethod
     def score(refs: list[str], preds: list[str], **kwargs) -> list:
         raise NotImplementedError
 
-    @staticmethod
+    @abstractmethod
     def aggregate(scores: list, **kwargs) -> object:
         raise NotImplementedError

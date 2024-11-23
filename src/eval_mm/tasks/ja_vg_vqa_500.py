@@ -2,23 +2,11 @@ from datasets import Dataset, concatenate_datasets, load_dataset
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.azure_client import OpenAIChatAPI
 from eval_mm.metrics import ScorerRegistry
 
 
 @register_task("ja-vg-vqa-500")
 class JaVGVQA500(Task):
-    def __init__(
-        self, max_dataset_len: int = None, judge_model: str = "gpt-4o-mini-2024-07-18"
-    ):
-        super().__init__()
-        self.client = OpenAIChatAPI()
-        self.judge_model = judge_model
-        if max_dataset_len is not None:
-            self.dataset = self._prepare_dataset().select(range(max_dataset_len))
-        else:
-            self.dataset = self._prepare_dataset()
-
     @staticmethod
     def _prepare_dataset() -> Dataset:
         ds = load_dataset("SakanaAI/JA-VG-VQA-500", split="test")
@@ -62,7 +50,11 @@ class JaVGVQA500(Task):
         refs = [doc["answer"] for doc in docs]
         pred_texts = [pred["text"] for pred in preds]
         scorer = ScorerRegistry.get_scorer(metric)
-        kwargs = {"docs": docs, "client": self.client, "batch_size": 10}
+        kwargs = {
+            "docs": docs,
+            "client": self.client,
+            "batch_size": self.config.batch_size_for_evaluation,
+        }
         return scorer.score(refs, pred_texts, **kwargs)
 
     def gather_scores(self, scores: list[dict], metric: str) -> dict:

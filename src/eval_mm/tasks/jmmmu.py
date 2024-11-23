@@ -1,6 +1,11 @@
 # Reference: https://github.com/EvolvingLMMs-Lab/lmms-eval/blob/main/lmms_eval/tasks/jmmmu/utils.py
 
-from datasets import Dataset, load_dataset, concatenate_datasets
+from datasets import (
+    Dataset,
+    load_dataset,
+    concatenate_datasets,
+    get_dataset_config_names,
+)
 
 from ..api.registry import register_task
 from ..api.task import Task
@@ -76,51 +81,11 @@ def jmmmu_doc_to_visual(doc):
 
 @register_task("jmmmu")
 class JMMMU(Task):
-    def __init__(
-        self, max_dataset_len: int = None, judge_model: str = "gpt-4o-mini-2024-07-18"
-    ):
-        super().__init__()
-        self._dataset = None
-        self.judge_model = judge_model
-        if max_dataset_len is not None:
-            self.dataset = self.prepare_dataset().select(range(max_dataset_len))
-        else:
-            self.dataset = self.prepare_dataset()
-
     @staticmethod
-    def prepare_dataset() -> Dataset:
-        SUBJECTS = [
-            "Accounting",
-            "Agriculture",
-            "Architecture_and_Engineering",
-            "Basic_Medical_Science",
-            "Biology",
-            "Chemistry",
-            "Clinical_Medicine",
-            "Computer_Science",
-            "Design",
-            "Diagnostics_and_Laboratory_Medicine",
-            "Economics",
-            "Electronics",
-            "Energy_and_Power",
-            "Finance",
-            "Japanese_Art",
-            "Japanese_Heritage",
-            "Japanese_History",
-            "Manage",
-            "Marketing",
-            "Materials",
-            "Math",
-            "Mechanical_Engineering",
-            "Music",
-            "Pharmacy",
-            "Physics",
-            "Psychology",
-            "Public_Health",
-            "World_History",
-        ]
+    def _prepare_dataset() -> Dataset:
+        configs = get_dataset_config_names("JMMMU/JMMMU")
         dataset = None
-        for subject in SUBJECTS:
+        for subject in configs:
             if dataset is None:
                 dataset = load_dataset("JMMMU/JMMMU", name=subject, split="test")
             else:
@@ -136,16 +101,20 @@ class JMMMU(Task):
         )
         return dataset
 
-    def doc_to_text(self, doc):
+    @staticmethod
+    def doc_to_text(doc):
         return doc["input_text"]
 
-    def doc_to_visual(self, doc):
+    @staticmethod
+    def doc_to_visual(doc):
         return jmmmu_doc_to_visual(doc)
 
-    def doc_to_id(self, doc):
+    @staticmethod
+    def doc_to_id(doc):
         return doc["question_id"]
 
-    def doc_to_answer(self, doc):
+    @staticmethod
+    def doc_to_answer(doc):
         return doc["answer"]
 
     def calc_scores(self, preds: list, metric: str) -> list:
@@ -154,7 +123,11 @@ class JMMMU(Task):
         refs = [doc["answer"] for doc in docs]
         pred_texts = [pred["text"] for pred in preds]
         scorer = ScorerRegistry.get_scorer(metric)
-        kwargs = {"docs": docs, "client": self.client, "batch_size": 10}
+        kwargs = {
+            "docs": docs,
+            "client": self.client,
+            "batch_size": self.config.batch_size_for_evaluation,
+        }
         return scorer.score(refs, pred_texts, **kwargs)
 
     def gather_scores(self, scores: list[dict], metric: str) -> dict:

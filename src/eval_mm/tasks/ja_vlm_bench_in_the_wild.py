@@ -2,23 +2,11 @@ from datasets import Dataset, load_dataset
 
 from ..api.registry import register_task
 from ..api.task import Task
-from ..utils.azure_client import OpenAIChatAPI
 from eval_mm.metrics import ScorerRegistry
 
 
 @register_task("ja-vlm-bench-in-the-wild")
 class JaVLMBenchIntheWild(Task):
-    def __init__(
-        self, max_dataset_len: int = None, judge_model: str = "gpt-4o-mini-2024-07-18"
-    ):
-        super().__init__()
-        self.client = OpenAIChatAPI()
-        self.judge_model = judge_model
-        if max_dataset_len is not None:
-            self.dataset = self._prepare_dataset().select(range(max_dataset_len))
-        else:
-            self.dataset = self._prepare_dataset()
-
     @staticmethod
     def _prepare_dataset() -> Dataset:
         # データセットをロード
@@ -48,8 +36,8 @@ class JaVLMBenchIntheWild(Task):
         kwargs = {
             "docs": docs,
             "client": self.client,
-            "judge_model": self.judge_model,
-            "batch_size": 10,
+            "judge_model": self.config.judge_model,
+            "batch_size": self.config.batch_size_for_evaluation,
         }
         return scorer.score(refs, pred_texts, **kwargs)
 
