@@ -34,6 +34,7 @@ BENCHMARK_METRICS = {
     },
     "ja-multi-image-vqa": {
         "rougel",
+        "llm_as_a_judge",
     },
     "jmmmu": {
         "jmmmu": [
