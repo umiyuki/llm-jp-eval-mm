@@ -1,30 +1,15 @@
 import abc
-from collections.abc import Callable
-from dataclasses import asdict, dataclass
+
+from dataclasses import dataclass
+from eval_mm.utils.azure_client import OpenAIChatAPI
+from datasets import Dataset
 
 
 @dataclass
-class TaskConfig(dict):
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def to_dict(self):
-        """dumps the current config as a dictionary object, as a printable format.
-        :return: dict
-            A printable dictionary version of the TaskConfig object.
-        """
-        cfg_dict = asdict(self)
-        # remove values that are `None`
-        for k, v in list(cfg_dict.items()):
-            if v is None:
-                cfg_dict.pop(k)
-            elif isinstance(v, Callable):
-                # TODO: this should handle Promptsource template objects as a separate case?
-                cfg_dict[k] = str(v)
-        return cfg_dict
+class TaskConfig:
+    max_dataset_len: int | None = None
+    judge_model: str = "gpt-4o-mini-2024-07-18"
+    batch_size_for_evaluation: int = 10
 
 
 class Task(abc.ABC):
@@ -34,24 +19,21 @@ class Task(abc.ABC):
     {"question": ..., "answer": ...} or {"question": ..., question, answer)
     """
 
-    def __init__(self, config=None) -> None:
-        self._config = TaskConfig({**config}) if config else TaskConfig()
+    def __init__(self, config: TaskConfig):
         self._dataset = None
-        self.prepare_task(config)
+        self.client = OpenAIChatAPI()
+        self.config = config
 
-    @property
-    def config(self):
-        """Returns the TaskConfig associated with this class."""
-        return self._config
-
-    @property
-    def dataset(self):
-        """Returns the dataset associated with this class."""
-        return self._dataset
+        if self.config.max_dataset_len is not None:
+            self.dataset = self._prepare_dataset().select(
+                range(self.config.max_dataset_len)
+            )
+        else:
+            self.dataset = self._prepare_dataset()
 
     @abc.abstractmethod
-    def prepare_task(self, config):
-        """Prepares a document for evaluation."""
+    def _prepare_dataset(self) -> Dataset:
+        """Prepares the dataset."""
         pass
 
     @abc.abstractmethod
@@ -70,18 +52,16 @@ class Task(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def evaluate(self, docs: list, preds: list) -> list[dict]:
-        """Evaluate batch prediction."""
+    def doc_to_answer(self, doc):
+        """Converts a document to answer."""
         pass
 
     @abc.abstractmethod
-    def compute_metrics(self, preds):
-        """
-        Args:
-            doc: a instance of the eval dataset
-            results: [pred]
-        Returns:
-            metrics: a dictionary with key: metric name (in this case coco_bleu), value: metric value
-            results_verbose: a dictionary with key: metric name, value: a dictionary with key: 'score' and 'verbose'
-        """
+    def calc_scores(self, preds: list, metric: str) -> list:
+        """Calculates scores for the predictions."""
+        pass
+
+    @abc.abstractmethod
+    def gather_scores(self, scores: list[dict], metric: str) -> dict:
+        """Aggregates the scores."""
         pass

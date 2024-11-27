@@ -18,11 +18,14 @@
 - [LLM-jp-eval-mm](#llm-jp-eval-mm)
   - [目次](#目次)
   - [環境構築](#環境構築)
+    - [PyPIでインストールする](#pypiでインストールする)
+    - [GitHubをCloneする場合](#githubをcloneする場合)
   - [評価方法](#評価方法)
-    - [サンプルコードの実行](#サンプルコードの実行)
+    - [評価の実行](#評価の実行)
     - [評価結果の確認](#評価結果の確認)
     - [リーダーボードの公開](#リーダーボードの公開)
   - [サポートするタスク](#サポートするタスク)
+  - [各VLMモデル推論時の必要ライブラリ情報](#各vlmモデル推論時の必要ライブラリ情報)
   - [ライセンス](#ライセンス)
   - [Contribution](#contribution)
 
@@ -98,10 +101,13 @@ rye run bash examples/evaluate.sh
 その場合は以下のコマンドを実行してください．
 
 ```bash
-rye run python3 examples/sample.py \
---class_path llava_1_5 \
---task_id japanese-heron-bench \
---openai_model_id gpt-4o-mini-2024-07-18
+python3 examples/sample.py \
+  --class_path llava_1_5_7b_hf \
+  --task_id japanese-heron-bench  \
+  --result_dir test  \
+  --metrics "llm_as_a_judge_heron_bench,exact_match,rougel" \
+  --judge_model "gpt-4o-2024-05-13" \
+  --overwrite
 ```
 
 ### 評価結果の確認
@@ -134,6 +140,30 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 - JA-VLM-Bench-In-the-Wild
 - JA-Multi-Image-VQA
 - JMMMU
+
+## 各VLMモデル推論時の必要ライブラリ情報
+
+- OpenGVLab/InternVL2-8B
+
+OOM防止のためFlashAttentionのInstallが必要です.
+```bash
+uv pip install flash-attn --no-build-isolation --python .venv
+```
+
+- Llama_3_EvoVLM_JP_v2
+
+mantis-vl のインストールが必要です.
+```bash
+rye add "datasets==2.18.0"
+rye add --dev mantis-vl --git=https://github.com/TIGER-AI-Lab/Mantis.git
+```
+
+- Qwen/Qwen2-VL-7B-Instruct
+
+qwen-vl-utils のインストールが必要です.
+```bash
+rye add --dev qwen-vl-utils
+```
 
 ## ライセンス
 
