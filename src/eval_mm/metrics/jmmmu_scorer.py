@@ -443,26 +443,12 @@ class JMMMUScorer:
                     for cat_results in in_domain_cat_results.values()
                 ]
             )
-            printable_results["Overall-" + domain] = {
-                "num": int(in_domain_data_num),
-                "acc": round(in_domain_ins_acc, 5),
-            }
+            printable_results["Overall-" + domain] = round(in_domain_ins_acc, 5)
             # add sub category
             for cat_name, cat_results in in_domain_cat_results.items():
-                printable_results[cat_name] = {
-                    "num": int(cat_results["num_example"]),
-                    "acc": round(cat_results["acc"], 5),
-                }
+                printable_results[cat_name] = round(cat_results["acc"], 5)
         all_ins_acc = calculate_ins_level_acc(evaluation_result)
-        printable_results["Overall"] = {
-            "num": sum(
-                [
-                    cat_results["num_example"]
-                    for cat_results in evaluation_result.values()
-                ]
-            ),
-            "acc": round(all_ins_acc, 5),
-        }
+        printable_results["Overall"] = round(all_ins_acc, 5)
         return printable_results
 
 
