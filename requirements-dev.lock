@@ -13,7 +13,6 @@
 absl-py==2.1.0
     # via rouge-score
 accelerate==0.34.2
-    # via mantis-vl
 aiohappyeyeballs==2.4.0
     # via aiohttp
 aiohttp==3.10.5
@@ -28,8 +27,6 @@ anyio==4.6.0
     # via openai
 attrs==24.2.0
     # via aiohttp
-av==13.1.0
-    # via qwen-vl-utils
 certifi==2024.8.30
     # via httpcore
     # via httpx
@@ -44,14 +41,12 @@ cycler==0.12.1
     # via matplotlib
 datasets==2.18.0
     # via eval-mm
-    # via mantis-vl
 dill==0.3.8
     # via datasets
     # via multiprocess
 distro==1.9.0
     # via openai
 einops==0.8.0
-    # via s2wrapper
 emoji==2.13.2
     # via eval-mm
 et-xmlfile==1.1.0
@@ -100,7 +95,6 @@ joblib==1.4.2
     # via nltk
 kiwisolver==1.4.7
     # via matplotlib
-mantis-vl @ git+https://github.com/TIGER-AI-Lab/Mantis.git@18867d0e3392a294905eecbc440780fd5c512bd6
 markupsafe==2.1.5
     # via jinja2
 matplotlib==3.9.2
@@ -167,15 +161,12 @@ packaging==24.1
     # via huggingface-hub
     # via matplotlib
     # via pytest
-    # via qwen-vl-utils
     # via transformers
 pandas==2.2.3
     # via datasets
     # via seaborn
 pillow==10.4.0
-    # via mantis-vl
     # via matplotlib
-    # via qwen-vl-utils
     # via torchvision
 pluggy==1.5.0
     # via pytest
@@ -205,7 +196,6 @@ pyyaml==6.0.2
     # via huggingface-hub
     # via timm
     # via transformers
-qwen-vl-utils==0.0.8
 regex==2024.9.11
     # via nltk
     # via tiktoken
@@ -214,21 +204,17 @@ requests==2.32.3
     # via datasets
     # via eval-mm
     # via huggingface-hub
-    # via qwen-vl-utils
     # via tiktoken
     # via transformers
 rouge-score==0.1.2
     # via eval-mm
 ruff==0.6.7
-s2wrapper @ git+https://github.com/bfshi/scaling_on_scales.git@ea1435a5e2aa7dadded22de2329d4d657d0aa164
-    # via eval-mm
 safetensors==0.4.5
     # via accelerate
     # via timm
     # via transformers
 seaborn==0.13.2
 sentencepiece==0.2.0
-    # via mantis-vl
 setuptools==75.1.0
     # via torch
 six==1.16.0
@@ -246,11 +232,9 @@ tokenizers==0.20.3
     # via transformers
 torch==2.4.0
     # via accelerate
-    # via mantis-vl
     # via timm
     # via torchvision
 torchvision==0.19.0
-    # via mantis-vl
     # via timm
 tqdm==4.66.5
     # via datasets
@@ -258,8 +242,7 @@ tqdm==4.66.5
     # via nltk
     # via openai
     # via transformers
-transformers==4.46.2
-    # via mantis-vl
+transformers==4.46.3
     # via transformers-stream-generator
 transformers-stream-generator==0.0.5
 triton==3.0.0
