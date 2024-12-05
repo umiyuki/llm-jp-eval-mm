@@ -31,8 +31,26 @@ parser.add_argument(
     "--metrics",
     type=str,
     default="llm_as_a_judge_heron_bench",
-    help="metrics to evaluate. You can specify multiple metrics separated by comma (e.g. --metrics exact_match,rougel).",
+    help="metrics to evaluate. You can specify multiple metrics separated by comma (e.g. --metrics exact_match,llm_as_a_judge) You can use rougel,substring_match,jmmmu,jdocqa,llm_as_a_judge_heron_bench,exact_match",
 )
+
+valid_metrics = [
+    "rougel",
+    "substring_match",
+    "jmmmu",
+    "jdocqa",
+    "llm_as_a_judge_heron_bench",
+    "exact_match",
+]
+
+
+def validate_metrics(metrics: list[str]):
+    for metric in metrics:
+        if metric not in valid_metrics:
+            raise ValueError(
+                f"Invalid metric: {metric}. Valid metrics are {valid_metrics}"
+            )
+
 
 args = parser.parse_args()
 
@@ -105,6 +123,7 @@ print("Evaluation start")
 # evaluate the predictions
 
 metrics = args.metrics.split(",")
+validate_metrics(metrics)
 
 scores_for_each_metric = {}
 

@@ -25,6 +25,7 @@ def jdocqa_normalize(text):
 
 
 def bleu_ja(refs, pred):
+    """Calculate BLEU score for Japanese text. Score is normalized to [0, 1]."""
     bleu_score = sentence_bleu(
         hypothesis=pred,
         references=refs,
@@ -34,7 +35,7 @@ def bleu_ja(refs, pred):
         use_effective_order=False,
         lowercase=False,
     )
-    return bleu_score.score
+    return bleu_score.score / 100
 
 
 class JDocQAScorer(Scorer):
@@ -83,6 +84,7 @@ class JDocQAScorer(Scorer):
                 metrics[key] = 0
                 continue
             metrics[key] = sum(value) / len(value)
+        metrics["overall"] = sum(scores) / len(scores)
 
         return metrics
 
