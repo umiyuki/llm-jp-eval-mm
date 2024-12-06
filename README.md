@@ -169,11 +169,9 @@ rye add --dev qwen-vl-utils
 ## タスク固有の必要ライブラリ情報
 
 - JDocQA
-
+JDocQA データセットの構築において, [pdf2image](https://pypi.org/project/pdf2image/) library が必要です. pdf2imageはpoppler-utilsに依存していますので, 以下のコマンドでインストールしてください.
 ```bash
 sudo apt-get install poppler-utils
-rye add pdf2image
-rye add "sacrebleu[ja]"
 ```
 
 ## ライセンス

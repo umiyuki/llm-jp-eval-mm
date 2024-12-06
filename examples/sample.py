@@ -41,6 +41,7 @@ valid_metrics = [
     "jdocqa",
     "llm_as_a_judge_heron_bench",
     "exact_match",
+    "llm_as_a_judge",
 ]
 
 
@@ -98,17 +99,18 @@ else:
     preds = []
     print(task.dataset)
     for doc in tqdm(task.dataset):
-        # print("doc", doc)
         image = task.doc_to_visual(doc)
         text = task.doc_to_text(doc)
         qid = task.doc_to_id(doc)
-        # print("image", image)
-        # print("text", text)
-        # print("qid", qid)
-
+        try:
+            generated_text = model.generate(image, text, gen_kwargs)
+        except Exception as e:
+            print(f"Error occurred for question_id: {qid}")
+            print(e)
+            generated_text = ""
         pred = {
             "question_id": qid,
-            "text": model.generate(image, text, gen_kwargs),
+            "text": generated_text,
         }
         preds.append(pred)
     with open(prediction_result_file_path, "w") as f:
