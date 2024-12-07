@@ -25,7 +25,6 @@ class JAMultiImageVQA(Task):
 
     @staticmethod
     def doc_to_visual(doc):
-        print("CAUTION: This task provides MULTIPLE images.")
         return doc["images"]
 
     @staticmethod
