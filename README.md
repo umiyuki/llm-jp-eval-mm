@@ -140,6 +140,7 @@ rye run python3 scripts/japanese-heron-bench/record_output.py
 - JA-VG-VQA500
 - JA-VLM-Bench-In-the-Wild
 - JA-Multi-Image-VQA
+- JDocQA
 - JMMMU
 
 ## 各VLMモデル推論時の必要ライブラリ情報
@@ -181,7 +182,7 @@ sudo apt-get install poppler-utils
 ## Contribution
 
 - 問題や提案があれば，Issue で報告してください．
-- 修正や追加があれば，Pull Requestを送ってください．
+- 新たなベンチマークタスクやメトリック, VLMモデルの推論コードの追加や, バグの修正がありましたら, Pull Requestを送ってください.
 
 - ライブラリの追加
 ```
