@@ -80,53 +80,24 @@ rye sync
 
 評価の実行のために，サンプルコード`examples/sample.py`を提供しています．
 
-`examples/{モデル名}.py`として含まれているモデルは，その推論方法に限りサポートしています．
-
-新たな推論方法・新たなモデルでの評価を実行したい場合，既存の`examples/{モデル名}.py`を参考に同様のファイルを作成することで，評価を実行することができます．
-
-`examples/evaluate.sh`は，`examples/sample.py`を実行するためのスクリプトです．複数のベンチマーク・モデルを指定することで，一括で評価を行うことができます．
-
-実行するためのコマンドは以下のとおりです．
-
-```bash
-rye run bash examples/evaluate.sh
-```
-
-`examples/evaluate.sh`の現在の設定は以下の通りです．
-
-- 評価モデル：`llava 1.5`
 - 評価ベンチマーク：`japanese-heron-bench`
-- OpenAIモデル（LLM-as-a-judgeのために利用）：`gpt-4o-mini-2024-07-18`
-
-`sample.py`を直接実行しても同じ結果が得られます．
-その場合は以下のコマンドを実行してください．
+- 評価したいモデル：`llava-hf/llava-1.5-7b-hf`
+- 評価指標: llm_as_a_judge_heron_bench
+  - Judge model: `"gpt-4o-2024-05-13"`
+としたい場合, 以下のコマンドを実行してください．
 
 ```bash
 python3 examples/sample.py \
   --model_id llava-hf/llava-1.5-7b-hf \
   --task_id japanese-heron-bench  \
   --result_dir test  \
-  --metrics "llm_as_a_judge_heron_bench,exact_match,rougel" \
+  --metrics "llm_as_a_judge_heron_bench" \
   --judge_model "gpt-4o-2024-05-13" \
   --overwrite
 ```
 
-### 評価結果の確認
-
 評価結果のスコアと出力結果は
-`result/{task_id}/evaluation/{model_id}.jsonl`, `result/{task_id}/prediction/{model_id}.jsonl` に保存されます.
-
-一部タスクでは評価結果の可視化を行うためのスクリプトが提供されています．
-
-japanese-heron-benchベンチマークについての結果の確認については,
-```python
-rye run python3 scripts/japanese-heron-bench/record_output.py
-```
-を実行することで,
-- 各exampleに対する各モデルの生成結果を載せたexcelファイル
-- 各モデルのスコアを載せたexcelファイル
-- 各モデルのスコア分布を示すグラフ画像
-が生成されます.
+`test/{task_id}/evaluation/{model_id}.jsonl`, `test/{task_id}/prediction/{model_id}.jsonl` に保存されます.
 
 ### リーダーボードの公開
 
