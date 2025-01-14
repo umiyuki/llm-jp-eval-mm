@@ -34,6 +34,7 @@
     - [依存ライブラリの追加方法](#依存ライブラリの追加方法)
     - [ruffを用いたフォーマット, リント](#ruffを用いたフォーマット-リント)
     - [PyPIへのリリース方法](#pypiへのリリース方法)
+  - [Reference](#reference)
 
 ## 環境構築
 
@@ -114,12 +115,17 @@ python3 examples/sample.py \
 
 現在，以下のベンチマークタスクをサポートしています．
 
-- Japanese Heron Bench
-- JA-VG-VQA500
-- JA-VLM-Bench-In-the-Wild
-- JA-Multi-Image-VQA
-- JDocQA
-- JMMMU
+Japanese Task:
+- [Japanese Heron Bench](https://huggingface.co/datasets/turing-motors/Japanese-Heron-Bench)
+- [JA-VG-VQA500](https://huggingface.co/datasets/SakanaAI/JA-VG-VQA-500)
+- [JA-VLM-Bench-In-the-Wild](https://huggingface.co/datasets/SakanaAI/JA-VLM-Bench-In-the-Wild)
+- [JA-Multi-Image-VQA](https://huggingface.co/datasets/SakanaAI/JA-Multi-Image-VQA)
+- [JDocQA](https://huggingface.co/datasets/shunk031/JDocQA)
+- [JMMMU](https://huggingface.co/datasets/JMMMU/JMMMU)
+
+English Task:
+- [MMMU](https://huggingface.co/datasets/MMMU/MMMU)
+- [LlaVA-Bench-In-the-Wild](https://huggingface.co/datasets/lmms-lab/llava-bench-in-the-wild)
 
 ## 各VLMモデル推論時の必要ライブラリ情報
 
@@ -212,3 +218,6 @@ git tag -a v0.x.x -m "version 0.x.x"
 git push origin --tags
 ```
 
+## Reference
+- https://github.com/EvolvingLMMs-Lab/lmms-eval
+- https://github.com/turingmotors/heron
