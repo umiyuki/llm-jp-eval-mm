@@ -119,6 +119,8 @@ Right now, the following benchmark tasks are supported:
 - JA-Multi-Image-VQA
 - JDocQA
 - JMMMU
+- MMMU
+- LLaVA Bench in the wild
 
 ## Required Libraries for Each VLM Model Inference
 
