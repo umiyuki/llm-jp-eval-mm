@@ -91,7 +91,8 @@ If you want to run an evaluation on a new inference method or a new model, creat
 For example, if you want to evaluate the `llava-hf/llava-1.5-7b-hf` model on the japanese-heron-bench task, run the following command:
 
 ```bash
-python3 examples/sample.py \
+uv sync --group normal 
+uv run --group normal python examples/sample.py \
   --model_id llava-hf/llava-1.5-7b-hf \
   --task_id japanese-heron-bench  \
   --result_dir test  \
