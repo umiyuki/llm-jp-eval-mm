@@ -114,14 +114,17 @@ We plan to publish a leaderboard summarizing the evaluation results of major mod
 
 Right now, the following benchmark tasks are supported:
 
-- Japanese Heron Bench
-- JA-VG-VQA500
-- JA-VLM-Bench-In-the-Wild
-- JA-Multi-Image-VQA
-- JDocQA
-- JMMMU
-- MMMU
-- LLaVA Bench in the wild
+Japanese Task:
+- [Japanese Heron Bench](https://huggingface.co/datasets/turing-motors/Japanese-Heron-Bench)
+- [JA-VG-VQA500](https://huggingface.co/datasets/SakanaAI/JA-VG-VQA-500)
+- [JA-VLM-Bench-In-the-Wild](https://huggingface.co/datasets/SakanaAI/JA-VLM-Bench-In-the-Wild)
+- [JA-Multi-Image-VQA](https://huggingface.co/datasets/SakanaAI/JA-Multi-Image-VQA)
+- [JDocQA](https://huggingface.co/datasets/shunk031/JDocQA)
+- [JMMMU](https://huggingface.co/datasets/JMMMU/JMMMU)
+
+English Task:
+- [MMMU](https://huggingface.co/datasets/MMMU/MMMU)
+- [LlaVA-Bench-In-the-Wild](https://huggingface.co/datasets/lmms-lab/llava-bench-in-the-wild)
 
 ## Required Libraries for Each VLM Model Inference
 
