@@ -109,7 +109,7 @@ If you want to evaluate multiple models on multiple tasks, please check `eval_al
 
 ### Leaderboard
 
-We plan to publish a leaderboard summarizing the evaluation results of major models soon.
+Leaderboard is [here](https://llm-jp.github.io/llm-jp-eval-mm/)
 
 ## Supported Tasks
 
