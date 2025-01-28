@@ -19,6 +19,7 @@ dependencies = [
     "protobuf>=5.29.1",
     "backoff>=2.2.1",
     "scipy>=1.15.1",
+    "torch>=2.5.1",
 ]
 readme = "README.md"
 license = "Apache-2.0"
@@ -59,13 +60,12 @@ dev = [
 ]
 
 evovlm = [
-    "torch>=2.5.1",
     "transformers==4.42.4",
     "mantis-vl",
 ]
 vilaja = [
     "accelerate==0.27.2",
-    "deepspeed==0.9.5",
+    "deepspeed>=0.16.3",
     "einops>=0.8.0",
     "psutils>=3.3.9",
     "s2wrapper",
