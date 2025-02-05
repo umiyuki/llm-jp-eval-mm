@@ -1,4 +1,4 @@
-# LLM-jp-eval-mm
+# llm-jp-eval-mm
 [![pypi](https://img.shields.io/pypi/v/eval-mm.svg)](https://pypi.python.org/pypi/eval-mm)
 
 [ [**Japanese**](./README_ja.md) | English ]
