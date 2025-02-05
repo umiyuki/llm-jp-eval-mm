@@ -1,4 +1,4 @@
-# LLM-jp-eval-mm
+# llm-jp-eval-mm
 [![pypi](https://img.shields.io/pypi/v/eval-mm.svg)](https://pypi.python.org/pypi/eval-mm)
 
 This README is in Japanese and the latest information is in English. Please refer to the English version for the latest information.
