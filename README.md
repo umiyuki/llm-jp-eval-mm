@@ -174,7 +174,6 @@ If you add a new group, don’t forget to configure [conflict](https://docs.astr
 ## License
 
 This repository is licensed under the Apache-2.0 License.
-For the licenses of each evaluation dataset, please see [DATASET.md](./DATASET.md).
 
 ## Contribution
 
