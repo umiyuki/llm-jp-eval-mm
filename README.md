@@ -122,6 +122,7 @@ Japanese Task:
 - [JA-Multi-Image-VQA](https://huggingface.co/datasets/SakanaAI/JA-Multi-Image-VQA)
 - [JDocQA](https://huggingface.co/datasets/shunk031/JDocQA)
 - [JMMMU](https://huggingface.co/datasets/JMMMU/JMMMU)
+- [JIC-VQA](https://huggingface.co/datasets/line-corporation/JIC-VQA)
 
 English Task:
 - [MMMU](https://huggingface.co/datasets/MMMU/MMMU)
