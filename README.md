@@ -120,7 +120,7 @@ Japanese Task:
 - [JA-VG-VQA500](https://huggingface.co/datasets/SakanaAI/JA-VG-VQA-500)
 - [JA-VLM-Bench-In-the-Wild](https://huggingface.co/datasets/SakanaAI/JA-VLM-Bench-In-the-Wild)
 - [JA-Multi-Image-VQA](https://huggingface.co/datasets/SakanaAI/JA-Multi-Image-VQA)
-- [JDocQA](https://huggingface.co/datasets/shunk031/JDocQA)
+- [JDocQA](https://github.com/mizuumi/JDocQA)
 - [JMMMU](https://huggingface.co/datasets/JMMMU/JMMMU)
 - [JIC-VQA](https://huggingface.co/datasets/line-corporation/JIC-VQA)
 
