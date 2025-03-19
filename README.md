@@ -1,5 +1,5 @@
 # llm-jp-eval-mm
-[![pypi](https://img.shields.io/pypi/v/eval-mm.svg)](https://pypi.python.org/pypi/eval-mm)
+[![pypi](https://img.shields.io/pypi/v/eval-mm.svg)](https://pypi.python.org/pypi/eval-mm) [![Test workflow](https://github.com/llm-jp/llm-jp-eval-mm/actions/workflows/test.yml/badge.svg)](https://github.com/llm-jp/llm-jp-eval-mm/actions/workflows/test.yml) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [ [**Japanese**](./README_ja.md) | English ]
 
