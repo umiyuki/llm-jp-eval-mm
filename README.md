@@ -207,6 +207,11 @@ You can also test each model's inference code with the following command:
 bash test_model.sh
 ```
 
+### Formatting and Linting with ruff
+```
+uv run ruff format src
+uv run ruff check --fix src
+```
 
 ### How to Release to PyPI
 
