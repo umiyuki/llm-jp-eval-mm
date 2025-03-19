@@ -177,12 +177,10 @@ class VLM(BaseVLM):
 
     def generate(
         self, images, text: str, gen_kwargs: GenerationConfig = GenerationConfig()
-    ):
+    ) -> str:
         # instruct blip does not expect the <image> tag
-        text = text.replace("<image>", "")
         prompt = build_prompt(task="vqa", input=text)
-        if isinstance(images, list):
-            images = [process_images(images)]
+        images = [process_images(images)]
         inputs = self.processor(images=images, return_tensors="pt", truncation=True)
         text_encoding = self.tokenizer(
             prompt, add_special_tokens=False, return_tensors="pt"

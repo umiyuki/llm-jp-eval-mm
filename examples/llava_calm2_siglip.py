@@ -5,7 +5,7 @@ from utils import GenerationConfig
 
 
 class VLM(BaseVLM):
-    def __init__(self, model_id: str = "cyberagent/llava-calm2-siglip")-> None:
+    def __init__(self, model_id: str = "cyberagent/llava-calm2-siglip") -> None:
         self.model_id = model_id
         self.model = LlavaForConditionalGeneration.from_pretrained(
             self.model_id,
@@ -14,21 +14,18 @@ class VLM(BaseVLM):
         self.processor = AutoProcessor.from_pretrained(self.model_id)
 
     def generate(
-        self, image, text: str, gen_kwargs: GenerationConfig = GenerationConfig()
-    ):
+        self, images, text: str, gen_kwargs: GenerationConfig = GenerationConfig()
+    ) -> str:
         prefix = None
         if "<image>" in text:
             prompt = "USER: " + text + "\nASSISTANT: "
         else:
-            if isinstance(image, list):
-                num_images = len(image)
-                prefix = "<image> " * num_images
-            else:
-                prefix = "<image> "
+            num_images = len(images)
+            prefix = "<image> " * num_images
             prompt = "USER: " + prefix + text + "\nASSISTANT: "
 
         inputs = (
-            self.processor(text=prompt, images=image, return_tensors="pt")
+            self.processor(text=prompt, images=images, return_tensors="pt")
             .to(self.model.device)
             .to(self.model.dtype)
         )

@@ -2,7 +2,6 @@
 
 from PIL import Image, ImageDraw, ImageFont
 from transformers import LlamaTokenizer, AutoModelForVision2Seq, BlipImageProcessor
-from typing import Union
 from base_vlm import BaseVLM
 from utils import GenerationConfig
 
@@ -151,7 +150,9 @@ def process_images(images, size=1008):
 
 
 class VLM(BaseVLM):
-    def __init__(self, model_id: str = "stabilityai/japanese-instructblip-alpha") -> None:
+    def __init__(
+        self, model_id: str = "stabilityai/japanese-instructblip-alpha"
+    ) -> None:
         self.model_id = model_id
         self.model = AutoModelForVision2Seq.from_pretrained(
             self.model_id,
@@ -164,14 +165,12 @@ class VLM(BaseVLM):
 
     def generate(
         self,
-        images: Union[Image.Image, list[Image.Image]],
+        images: list[Image.Image],
         text: str,
         gen_kwargs: GenerationConfig = GenerationConfig(),
-    ):
-        text = text.replace("<image>", "")
+    ) -> str:
         prompt = build_prompt(prompt=text)
-        if isinstance(images, list):
-            images = [process_images(images)]
+        images = [process_images(images)]
         inputs = self.processor(images=images, return_tensors="pt", truncation=True)
         text_encoding = self.tokenizer(
             prompt, add_special_tokens=False, return_tensors="pt"

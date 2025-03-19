@@ -1,7 +1,6 @@
 from PIL import Image
 from vllm import LLM
 from vllm.sampling_params import SamplingParams
-from typing import Union
 import base64
 from io import BytesIO
 from base_vlm import BaseVLM
@@ -30,26 +29,24 @@ def image_to_content(image: Image.Image) -> dict:
 
 
 class VLM(BaseVLM):
-    def __init__(self, model_id: str = "mistralai/Pixtral-12B-2409")-> None:
+    def __init__(self, model_id: str = "mistralai/Pixtral-12B-2409") -> None:
         self.model_id = model_id
         max_img_per_msg = 5
         self.model = LLM(
             model=self.model_id,
             tokenizer_mode="mistral",
             tensor_parallel_size=1,
-            limit_mm_per_prompt={"image": max_img_per_msg}, max_model_len=32768
+            limit_mm_per_prompt={"image": max_img_per_msg},
+            max_model_len=32768,
         )
 
     def generate(
         self,
-        images: Union[Image.Image, list[Image.Image]],
+        images: list[Image.Image],
         text: str,
         gen_kwargs: GenerationConfig = GenerationConfig(),
-    ):
-        if isinstance(images, list):
-            content = [image_to_content(image) for image in images]
-        else:
-            content = [image_to_content(images)]
+    ) -> str:
+        content = [image_to_content(image) for image in images]
         content.extend([{"type": "text", "text": text}])
         messages = [
             {

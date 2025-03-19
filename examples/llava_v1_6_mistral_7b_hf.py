@@ -1,7 +1,6 @@
 import torch
 from PIL import Image
 from transformers import LlavaNextForConditionalGeneration, LlavaNextProcessor
-from typing import Union
 from base_vlm import BaseVLM
 from utils import GenerationConfig
 
@@ -20,15 +19,14 @@ class VLM(BaseVLM):
 
     def generate(
         self,
-        images: Union[Image.Image, list[Image.Image]],
+        images: list[Image.Image],
         text: str,
         gen_kwargs: GenerationConfig = GenerationConfig(),
-    ):
+    ) -> str:
         if DEFAULT_IMAGE_TOKEN in text:
             text = text.replace(DEFAULT_IMAGE_TOKEN, "")
-        num_images = 1
-        if isinstance(images, list):
-            num_images = len(images)
+
+        num_images = len(images)
         content = [{"type": "image"} for _ in range(num_images)]
         content.extend([{"type": "text", "text": text}])
         messages = [
