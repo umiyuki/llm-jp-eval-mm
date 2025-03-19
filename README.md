@@ -76,7 +76,7 @@ uv run --group normal python examples/sample.py \
 ```
 
 The evaluation score and output results will be saved in
-`test/{task_id}/{model_id}/evaluation.jsonl` and `test/{task_id}/{model_id}/prediction/.jsonl`.
+`test/{task_id}/{model_id}/evaluation.jsonl` and `test/{task_id}/{model_id}/prediction.jsonl`.
 
 If you want to evaluate multiple models on multiple tasks, please check `eval_all.sh`.
 
