@@ -10,8 +10,6 @@ This tool automatically evaluates Japanese multi-modal large language models acr
 
 ![What llm-jp-eval-mm provides](https://github.com/llm-jp/llm-jp-eval-mm/blob/master/assets/teaser.png)
 
-For details on the data format and the list of supported data, please check [DATASET.md](./DATASET.md).
-
 ## Table of Contents
 
 - [llm-jp-eval-mm](#llm-jp-eval-mm)
@@ -84,7 +82,19 @@ If you want to evaluate multiple models on multiple tasks, please check `eval_al
 
 ### Leaderboard
 
-Leaderboard is [here](https://llm-jp.github.io/llm-jp-eval-mm/)
+You can create a leaderboard.md file by running the following command:
+```bash
+python scripts/make_leaderboard.py --result_dir result
+```
+
+Table like below will be created in `leaderboard.md` file.
+| Model                    | Heron/LLM | JVB-ItW/LLM | JVB-ItW/Rouge |
+| :----------------------- | --------: | ----------: | ------------: |
+| llava-hf/llava-1.5-7b-hf |   36.9038 |         2.7 |       40.7525 |
+
+
+
+Official Leaderboard is [here](https://llm-jp.github.io/llm-jp-eval-mm/)
 
 ## Supported Tasks
 
@@ -98,6 +108,7 @@ Japanese Task:
 - [JDocQA](https://github.com/mizuumi/JDocQA)
 - [JMMMU](https://huggingface.co/datasets/JMMMU/JMMMU)
 - [JIC-VQA](https://huggingface.co/datasets/line-corporation/JIC-VQA)
+- [MECHA-ja](https://huggingface.co/datasets/llm-jp/MECHA-ja)
 
 English Task:
 - [MMMU](https://huggingface.co/datasets/MMMU/MMMU)
