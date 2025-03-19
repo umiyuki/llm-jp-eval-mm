@@ -195,11 +195,6 @@ uv add <package_name>
 uv add --group <group_name> <package_name>
 ```
 
-### Formatting and Linting with ruff
-```
-uv run ruff format src
-uv run ruff check --fix src
-```
 
 ### Testing
 
