@@ -1,7 +1,7 @@
 import abc
 
 from dataclasses import dataclass
-from eval_mm.utils.azure_client import OpenAIChatAPI
+from eval_mm.utils.litellm_client import LLMChatAPI
 from datasets import Dataset
 from PIL import Image
 
@@ -12,6 +12,7 @@ class TaskConfig:
     judge_model: str = "gpt-4o-mini-2024-07-18"
     batch_size_for_evaluation: int = 10
     rotate_choices: bool = False
+    provider: str = "custom"
 
 
 class Task(abc.ABC):
@@ -23,7 +24,16 @@ class Task(abc.ABC):
 
     def __init__(self, config: TaskConfig):
         self._dataset = None
-        self.client = OpenAIChatAPI()
+        # judge_modelに基づいてproviderを設定
+        if config.judge_model.startswith("gemini"):
+            provider = "gemini"
+        elif config.judge_model.startswith("gpt"):
+            provider = "openai"
+        elif config.judge_model.startswith("azure"):
+            provider = "azure"
+        else:
+            provider = config.provider
+        self.client = LLMChatAPI(provider=provider, api_base=None)
         self.config = config
 
         if self.config.max_dataset_len is not None:

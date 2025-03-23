@@ -44,7 +44,7 @@ def get_class_from_path(class_path: str):
 
 
 def get_class_from_model_id(model_id: str):
-    return get_class_from_path(MODEL_ID_TO_CLASS_PATH[model_id])
+    return get_class_from_path(MODEL_ID_TO_CLASS_PATH.get(model_id, "examples.LiteLLM.LiteLLMVLM"))  # デフォルトでLiteLLMを使用
 
 
 if __name__ == "__main__":

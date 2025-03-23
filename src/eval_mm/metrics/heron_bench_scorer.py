@@ -1,4 +1,5 @@
-from eval_mm.utils.azure_client import OpenAIChatAPI
+import litellm
+from eval_mm.utils.litellm_client import LLMChatAPI
 from collections import defaultdict
 import numpy as np
 from eval_mm.metrics.scorer import Scorer, AggregateOutput
@@ -60,7 +61,7 @@ def parse_score(review: str) -> dict[str, int]:
 
 
 def ask_gpt4_batch(
-    content_list: str, max_tokens: int, async_client: OpenAIChatAPI, model_name: str
+    content_list: str, max_tokens: int, async_client: LLMChatAPI, model_name: str
 ) -> list:
     message_list = [
         [
@@ -96,9 +97,33 @@ def build_content(context, input_text, ref_answer, pred_answer, role, prompt):
 class HeronBenchScorer(Scorer):
     @staticmethod
     def score(refs, preds: list[str], **kwargs) -> list[dict[str, int]]:
+        #litellm._turn_on_debug()
+        litellm.drop_params = True
         docs = kwargs["docs"]
         client = kwargs["client"]
         judge_model = kwargs["judge_model"]
+        debug_limit = kwargs["debug_limit"]
+
+        # デバッグ用にデータ数を制限
+        if debug_limit is not None:
+            print(f"Applying debug_limit: {debug_limit}")
+            # docsがdatasets.Datasetの場合に対応
+            if hasattr(docs, 'select'):
+                docs = docs.select(range(min(debug_limit, len(docs))))
+            else:
+                docs = docs[:debug_limit]
+            refs = refs[:debug_limit]
+            preds = preds[:debug_limit]
+        
+        print(f"Type of docs: {type(docs)}")
+        print(f"Number of docs after limit: {len(docs)}")
+        print(f"Number of refs after limit: {len(refs)}")
+        print(f"Number of preds after limit: {len(preds)}")
+        
+        # docsがdatasets.Datasetの場合、辞書形式に変換
+        if hasattr(docs, '__getitem__') and not isinstance(docs, (list, dict)):
+            docs = [dict(doc) for doc in docs]
+
         contents = []
         for doc, ref, pred in zip(docs, refs, preds):
             content = build_content(
@@ -120,38 +145,49 @@ class HeronBenchScorer(Scorer):
         docs = kwargs["docs"]
         category_list = ["conv", "detail", "complex"]
         heron_metrics = defaultdict(float)
+        
+        # エラー（-1）を除外した有効なスコアのみを抽出
+        valid_scores = [score for score in scores if score["score"] != -1 and score["score_gpt"] != -1]
+        valid_docs = [doc for score, doc in zip(scores, docs) if score["score"] != -1 and score["score_gpt"] != -1]
+        
+        # カテゴリごとの計算
         for category in category_list:
             score_owns = [
                 score["score"]
                 for score, doc in zip(scores, docs)
-                if doc["category"] == category
+                if doc["category"] == category and score["score"] != -1
             ]
             score_gpts = [
                 score["score_gpt"]
                 for score, doc in zip(scores, docs)
-                if doc["category"] == category
+                if doc["category"] == category and score["score_gpt"] != -1
             ]
-            if len(score_owns) == 0 or np.mean(score_owns) == -1:
+            if len(score_owns) == 0:
                 continue
             avg_score = np.mean(score_owns)
             avs_score_rel = (
                 100
                 * np.mean(score_owns)
-                / max(
-                    0.01, np.mean(score_gpts)
-                )  # divide by 0.01 when 0 division happens
+                / max(0.01, np.mean(score_gpts))  # 0除算対策
             )
             heron_metrics[category] = avg_score
             heron_metrics[category + "_rel"] = avs_score_rel
+        
+        # エラーのカウント
         heron_metrics["parse_error_count"] = sum(
-            score["score"] == -1 for score in scores
+            score["score"] == -1 or score["score_gpt"] == -1 for score in scores
         )
-        heron_metrics["overall"] = sum([score["score"] for score in scores]) / len(
-            scores
-        )
-        heron_metrics["overall_rel"] = sum(
-            [heron_metrics[category + "_rel"] for category in category_list]
-        ) / len(category_list)
+        
+        # 有効なスコアのみで全体スコアを計算
+        if len(valid_scores) > 0:
+            heron_metrics["overall"] = sum([score["score"] for score in valid_scores]) / len(valid_scores)
+            heron_metrics["overall_rel"] = sum(
+                [heron_metrics[category + "_rel"] for category in category_list if category + "_rel" in heron_metrics]
+            ) / sum(1 for category in category_list if category + "_rel" in heron_metrics)
+        else:
+            heron_metrics["overall"] = 0.0
+            heron_metrics["overall_rel"] = 0.0
+
         output = AggregateOutput(
             overall_score=heron_metrics["overall_rel"],
             details=heron_metrics,
@@ -181,24 +217,30 @@ def test_heron_bench_scorer():
     }
 
 
+# __main__部分の呼び出し例
 if __name__ == "__main__":
     from datasets import load_dataset
 
     ds = load_dataset("Silviase/Japanese-Heron-Bench", split="train")
     ds = ds.rename_column("text", "input_text")
-    # the 102th problem
-    ds = ds.select(range(100, 102))
+    # データセット全体を渡すが、score内で制限されるはず
     pred_texts = [
         "画像から判断すると、制限速度は50 km/hのようです。道路標識に「50」と表示されています。",
         "画像に写っている標識によると、現在地からニセコまでは12kmです。",
+        "これはテスト回答です。",
+        "これはテスト回答です。",
+        "これはテスト回答です。",
     ]
     refs = [doc["answer"]["gpt-4-0125-preview"] for doc in ds]
-    client = OpenAIChatAPI()
+    client = LLMChatAPI()
     judge_model = "gpt-4o-2024-05-13"
+    # debug_limit=3を指定
     scores = HeronBenchScorer.score(
-        refs, pred_texts, docs=ds, client=client, judge_model=judge_model
+        refs, pred_texts, docs=ds, client=client, judge_model=judge_model, debug_limit=3
     )
-    print(scores)
+    print("Scores:", scores)
 
-    output = HeronBenchScorer.aggregate(scores, docs=ds)
-    print(output)
+    # aggregateでも制限されたdocsを渡す
+    limited_docs = ds.select(range(3))  # Dataset形式のまま渡す
+    output = HeronBenchScorer.aggregate(scores, docs=limited_docs)
+    print("Output:", output)

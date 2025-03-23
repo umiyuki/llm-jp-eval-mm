@@ -23,6 +23,8 @@ dependencies = [
     "webdataset>=0.2.111",
     "av>=14.1.0",
     "loguru>=0.7.3",
+    "litellm>=1.0.0",  # LiteLLMを追加
+    "google-generativeai>=0.7.0",  # Google Gemini用
 ]
 readme = "README.md"
 license = "Apache-2.0"

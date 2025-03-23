@@ -1,9 +1,11 @@
 from datasets import load_dataset, Dataset
-
 from ..api.registry import register_task
 from ..api.task import Task
 from PIL import Image
+import os
 
+# HF_HUB_ETAG_TIMEOUTを30秒に設定
+os.environ["HF_HUB_ETAG_TIMEOUT"] = "30"
 
 @register_task("japanese-heron-bench")
 class JapaneseHeronBench(Task):
