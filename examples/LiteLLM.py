@@ -78,10 +78,15 @@ class LiteLLMVLM(BaseVLM):
             }
         ]
 
+        # providerがopenaiの場合、modelを"openai/モデルID"形式に変更
+        model = self.model_id
+        if self.provider == "openai":
+            model = f"openai/{self.model_id}"
+
         # LiteLLMを介して推論
         try:
             response = completion(
-                model=self.model_id,
+                model=model,
                 messages=messages,
                 model_response_format={"type": "text"},
                 mock_response=False,
@@ -98,5 +103,5 @@ class LiteLLMVLM(BaseVLM):
 
 if __name__ == "__main__":
     # テスト用コード
-    vlm = LiteLLMVLM(model_id="gpt-4o-2024-05-13", provider="openai")
+    vlm = LiteLLMVLM(model_id="google/gemma-3-12b-it", provider="openai")
     vlm.test_vlm()

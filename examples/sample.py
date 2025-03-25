@@ -47,7 +47,8 @@ def parse_args():
     )
     # LiteLLM用の引数を追加
     parser.add_argument("--provider", type=str, default="openai", help="Provider for LiteLLM (e.g., openai, azure, gemini, custom)")
-    parser.add_argument("--api_base", type=str, default=None, help="Custom API base URL for LiteLLM")
+    parser.add_argument("--api_base_eval", type=str, default=None, help="Custom API base URL for evaluation model")
+    parser.add_argument("--api_base_judge", type=str, default=None, help="Custom API base URL for judge model")
     parser.add_argument("--api_key", type=str, default=None, help="Custom API key for LiteLLM")
     parser.add_argument("--debug_limit", type=int, default=None, help="Limit the number of samples for debugging")
     return parser.parse_args()
@@ -81,6 +82,7 @@ if __name__ == "__main__":
         max_dataset_len=args.max_dataset_len,
         judge_model=args.judge_model,
         batch_size_for_evaluation=args.batch_size_for_evaluation,
+        api_base_judge=args.api_base_judge,
         rotate_choices=args.rotate_choices,
     )
     task = eval_mm.api.registry.get_task_cls(args.task_id)(task_config)
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         # LiteLLMの場合、追加の引数を渡してインスタンス化
         model = model_class(
             model_id=args.model_id,
-            api_base=args.api_base,
+            api_base=args.api_base_eval,
             api_key=args.api_key,
             provider=args.provider
         )

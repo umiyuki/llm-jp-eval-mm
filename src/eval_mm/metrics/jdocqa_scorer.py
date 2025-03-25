@@ -43,24 +43,24 @@ class JDocQAScorer(Scorer):
     def score(refs: list[str], preds: list[str], **kwargs) -> list[int]:
         docs = kwargs["docs"]
         scores = []
-
         for doc, ref, pred in zip(docs, refs, preds):
-            if doc["answer_type"] == ANSWER_TYPE_MAP["open-ended"]:
-                scores.append(bleu_ja([ref], pred))
-            elif doc["answer_type"] in [
-                ANSWER_TYPE_MAP["yesno"],
-                ANSWER_TYPE_MAP["factoid"],
-                ANSWER_TYPE_MAP["numerical"],
-            ]:
-                ref = jdocqa_normalize(ref)
-                pred = jdocqa_normalize(pred)
-                if ref in pred:
-                    scores.append(1)
+            try:
+                if doc["answer_type"] == ANSWER_TYPE_MAP["open-ended"]:
+                    score = bleu_ja([ref], pred)
+                elif doc["answer_type"] in [
+                    ANSWER_TYPE_MAP["yesno"],
+                    ANSWER_TYPE_MAP["factoid"],
+                    ANSWER_TYPE_MAP["numerical"],
+                ]:
+                    ref = jdocqa_normalize(ref)
+                    pred = jdocqa_normalize(pred)
+                    score = 1 if ref in pred else 0
                 else:
-                    scores.append(0)
-            else:
-                raise NotImplementedError("Bad answer type.")
-
+                    raise NotImplementedError("Bad answer type.")
+                scores.append(score)
+            except Exception as e:
+                print(f"Error in scoring question_id {doc['question_id']}: {e}")
+                scores.append(None)  # エラー時はNoneを追加
         return scores
 
     @staticmethod
@@ -72,22 +72,20 @@ class JDocQAScorer(Scorer):
             "numerical_exact": [],
             "open-ended_bleu": [],
         }
-        for doc, score in zip(docs, scores):
+        # エラー（None）を除外
+        valid_pairs = [(doc, score) for doc, score in zip(docs, scores) if score is not None]
+        if not valid_pairs:
+            return AggregateOutput(0, {k: 0 for k in metrics.keys()} | {"overall": 0})
+        for doc, score in valid_pairs:
             answer_type = doc["answer_type"]
             if answer_type == ANSWER_TYPE_MAP["open-ended"]:
                 metrics["open-ended_bleu"].append(score)
             else:
                 metrics[f"{NUM_TO_ANSWER_TYPE[answer_type]}_exact"].append(score)
-
         for key, value in metrics.items():
-            if len(value) == 0:
-                metrics[key] = 0
-                continue
-            metrics[key] = sum(value) / len(value)
-        metrics["overall"] = sum(scores) / len(scores)
-        output = AggregateOutput(metrics["overall"], metrics)
-
-        return output
+            metrics[key] = sum(value) / len(value) if value else 0
+        metrics["overall"] = sum(score for _, score in valid_pairs) / len(valid_pairs)
+        return AggregateOutput(metrics["overall"], metrics)
 
 
 def test_jdocqa_scorer():

@@ -390,20 +390,22 @@ def eval_open(gold_i, pred_i):
 
 
 def get_score(doc: Dataset, pred: str) -> int:
-    if doc["question_type"] == "multiple-choice":
-        index2ans, all_choices = get_multi_choice_info(ast.literal_eval(doc["options"]))
-        parsed_pred = parse_multi_choice_response(pred, all_choices, index2ans)
-    else:
-        parsed_pred = parse_open_response(pred)
-    answer = doc["answer"]
-    question_type = doc["question_type"]
-    if question_type == "multiple-choice":
-        correct = eval_multi_choice(answer, parsed_pred)
-    else:
-        correct = eval_open(answer, parsed_pred)
-
-    score = int(correct)
-    return score
+    try:
+        if doc["question_type"] == "multiple-choice":
+            index2ans, all_choices = get_multi_choice_info(ast.literal_eval(doc["options"]))
+            parsed_pred = parse_multi_choice_response(pred, all_choices, index2ans)
+        else:
+            parsed_pred = parse_open_response(pred)
+        answer = doc["answer"]
+        question_type = doc["question_type"]
+        if question_type == "multiple-choice":
+            correct = eval_multi_choice(answer, parsed_pred)
+        else:
+            correct = eval_open(answer, parsed_pred)
+        return int(correct)
+    except Exception as e:
+        print(f"Error in scoring {doc['id']}: {e}")
+        return None  # エラー時はNoneを返す
 
 
 class MMMUScorer(Scorer):
@@ -421,36 +423,33 @@ class MMMUScorer(Scorer):
         docs = kwargs["docs"]
         evaluation_result = {}
         subset_to_eval_samples = defaultdict(list)
-        for doc, score in zip(docs, scores):
+        # エラー（None）を除外して集計
+        valid_pairs = [(doc, score) for doc, score in zip(docs, scores) if score is not None]
+        if not valid_pairs:
+            return AggregateOutput(0, {"Overall": 0})
+        for doc, score in valid_pairs:
             subdomain = extract_subset_name(doc["id"])
             subset_to_eval_samples[subdomain].append(score)
+        # 以下は既存の集計ロジックをそのまま使用
         for subset, sub_eval_samples in subset_to_eval_samples.items():
             num = len(sub_eval_samples)
             acc = sum(sub_eval_samples) / num
             evaluation_result[subset] = {"num_example": num, "acc": acc}
+        # ドメインごとの計算も同様に処理
         printable_results = {}
         for domain, in_domain_cats in DOMAIN_CAT2SUB_CAT.items():
-            in_domain_cat_results = {}
-            for cat_name in in_domain_cats:
-                if cat_name in evaluation_result.keys():
-                    in_domain_cat_results[cat_name] = evaluation_result[cat_name]
-                else:
-                    pass
+            in_domain_cat_results = {
+                cat_name: evaluation_result[cat_name]
+                for cat_name in in_domain_cats
+                if cat_name in evaluation_result
+            }
             in_domain_ins_acc = calculate_ins_level_acc(in_domain_cat_results)
-            in_domain_data_num = sum(
-                [
-                    cat_results["num_example"]
-                    for cat_results in in_domain_cat_results.values()
-                ]
-            )
             printable_results["Overall-" + domain] = round(in_domain_ins_acc, 5)
-            # add sub category
             for cat_name, cat_results in in_domain_cat_results.items():
                 printable_results[cat_name] = round(cat_results["acc"], 5)
         all_ins_acc = calculate_ins_level_acc(evaluation_result)
         printable_results["Overall"] = round(all_ins_acc, 5)
-        output = AggregateOutput(all_ins_acc, printable_results)
-        return output
+        return AggregateOutput(all_ins_acc, printable_results)
 
 
 def test_mmmu_score():

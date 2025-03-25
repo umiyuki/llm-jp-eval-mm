@@ -13,6 +13,7 @@ class TaskConfig:
     batch_size_for_evaluation: int = 10
     rotate_choices: bool = False
     provider: str = "custom"
+    api_base_judge: str | None = None
 
 
 class Task(abc.ABC):
@@ -33,7 +34,7 @@ class Task(abc.ABC):
             provider = "azure"
         else:
             provider = config.provider
-        self.client = LLMChatAPI(provider=provider, api_base=None)
+        self.client = LLMChatAPI(provider=provider, api_base=config.api_base_judge)
         self.config = config
 
         if self.config.max_dataset_len is not None:
